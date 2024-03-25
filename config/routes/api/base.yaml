@@ -1,0 +1,5 @@
+v1:
+  name_prefix: 'v1.'
+  prefix: 'v1'
+  resource: './v1.yaml'
+
