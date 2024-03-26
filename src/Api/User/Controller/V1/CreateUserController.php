@@ -13,9 +13,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
-class SignUpController extends AbstractController
+class CreateUserController extends AbstractController
 {
-    #[Route(path: '/users', name: 'sign-up', methods: ['POST'])]
+    #[Route(path: '/users', name: 'users.create', methods: ['POST'])]
     public function __invoke(Request $request, NormalizerInterface $normalizer, UserService $userService): JsonResponse
     {
         $user = $userService->create(CreateUserDTO::fromRequest($request));

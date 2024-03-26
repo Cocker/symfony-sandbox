@@ -3,4 +3,3 @@ user:
     path: ../../../src/Api/User/Controller/V1
     namespace: App\Api\User\Controller\V1
   type: attribute
-  name_prefix: 'user.'

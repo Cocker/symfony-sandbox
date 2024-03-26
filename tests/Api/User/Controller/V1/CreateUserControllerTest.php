@@ -17,7 +17,7 @@ use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-class SignUpControllerTest extends ApiTestCase
+class CreateUserControllerTest extends ApiTestCase
 {
     use ReloadDatabaseTrait;
 
