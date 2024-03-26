@@ -8,9 +8,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
-class SignOutController extends AbstractController
+class LogoutController extends AbstractController
 {
-    #[Route(path: '/sign-out', name: 'sign-out', methods: ['POST'])]
+    #[Route(path: '/auth/logout', name: 'auth.logout', methods: ['POST'])]
     public function __invoke(): JsonResponse
     {
         return $this->json([]);

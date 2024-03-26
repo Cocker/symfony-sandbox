@@ -11,9 +11,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
-class SignInController extends AbstractController
+class LoginController extends AbstractController
 {
-    #[Route(path: '/sign-in', name: 'sign-in', methods: ['POST'])]
+    #[Route(path: '/auth/login', name: 'auth.login', methods: ['POST'])]
     public function __invoke(Request $request, AuthService $authService): JsonResponse
     {
         return $this->json(['token' => $authService->login(SignInDTO::fromRequest($request))]);

@@ -10,8 +10,9 @@ use App\Api\User\Fixture\ExistingEmailUserFixture;
 use Doctrine\ORM\EntityManagerInterface;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
+use Symfony\Component\HttpFoundation\Response;
 
-class SignInControllerTest extends ApiTestCase
+class LoginControllerTest extends ApiTestCase
 {
     use ReloadDatabaseTrait;
 
@@ -35,7 +36,7 @@ class SignInControllerTest extends ApiTestCase
     {
         $this->databaseToolCollection->get()->loadFixtures([ExistingEmailUserFixture::class]);
 
-        $response = $this->client->request('POST','/api/v1/sign-in', [
+        $response = $this->client->request('POST','/api/v1/auth/login', [
             'body' => json_encode([
                 'email' => ExistingEmailUserFixture::EXISTING_EMAIL,
                 'password' => ExistingEmailUserFixture::DEFAULT_PASSWORD,
@@ -46,8 +47,29 @@ class SignInControllerTest extends ApiTestCase
         $json = $response->toArray();
         $this->assertArrayHasKey('token', $json);
 
+        $this->client->request('GET','/api/v1/auth/me');
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
 
-        // todo test the JWT token
+        $this->client->request(
+            'GET',
+            '/api/v1/auth/me',
+            ['headers' => ['Authorization' => sprintf("Bearer {$json['token']}")]]
+        );
+        $this->assertResponseIsSuccessful();
+    }
+
+    public function test_it_returns_401_if_invalid_credentials_are_provided(): void
+    {
+        $this->databaseToolCollection->get()->loadFixtures([ExistingEmailUserFixture::class]);
+
+        $this->client->request('POST','/api/v1/auth/login', [
+            'body' => json_encode([
+                'email' => 'invalid',
+                'password' => 'invalid',
+            ], JSON_THROW_ON_ERROR)
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
     }
 
     protected function tearDown(): void

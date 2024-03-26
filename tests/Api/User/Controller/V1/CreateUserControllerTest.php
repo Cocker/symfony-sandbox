@@ -90,8 +90,8 @@ class CreateUserControllerTest extends ApiTestCase
             ], JSON_THROW_ON_ERROR)
         ]);
 
-        $responseJson = json_decode($response->getContent(throw: false), true, 512, \JSON_THROW_ON_ERROR);
-        $validationErorrs = $responseJson['hydra:description'];
+        $responseArray = $response->toArray(throw: false);
+        $validationErorrs = $responseArray['hydra:description'];
 
         $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
 
