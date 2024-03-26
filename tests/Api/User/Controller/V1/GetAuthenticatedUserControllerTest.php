@@ -52,7 +52,7 @@ class GetAuthenticatedUserControllerTest extends ApiTestCase
             ['headers' => ['Authorization' => "Bearer $token"]]
         );
 
-        $this->assertResponseIsSuccessful();
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
         $this->assertJsonContains(['email' => ExistingEmailUserFixture::EXISTING_EMAIL]);
     }
 

@@ -71,7 +71,7 @@ class CreateUserControllerTest extends ApiTestCase
         $this->assertSame($lastName, $createdUser->getLastName());
         $this->assertSame($email, $createdUser->getEmail());
         $this->assertSame(UserStatus::ACTIVE, $createdUser->getStatus());
-        $this->assertSame([UserRole::USER], $createdUser->getRoles());
+        $this->assertSame([UserRole::USER->value], $createdUser->getRoles());
         $this->assertTrue($now->eq($createdUser->getCreatedAt()));
         $this->assertTrue($now->eq($createdUser->getUpdatedAt()));
 

@@ -6,6 +6,7 @@ namespace App\Api\User\Service\V1;
 
 use ApiPlatform\Validator\ValidatorInterface;
 use App\Api\User\DTO\V1\CreateUserDTO;
+use App\Api\User\DTO\V1\UpdateUserDTO;
 use App\Api\User\Entity\Enum\UserStatus;
 use App\Api\User\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
@@ -40,6 +41,20 @@ class UserService
 
         $this->entityManager->persist($user);
 
+        $this->entityManager->flush();
+
+        return $user;
+    }
+
+    public function update(User $user, UpdateUserDTO $updateUserDTO): User
+    {
+        $user->setFirstName($updateUserDTO->firstName)
+            ->setLastName($updateUserDTO->lastName)
+        ;
+
+        $this->validator->validate($user);
+
+        $this->entityManager->persist($user);
         $this->entityManager->flush();
 
         return $user;

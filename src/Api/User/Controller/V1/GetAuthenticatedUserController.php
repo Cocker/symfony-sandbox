@@ -12,7 +12,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 class GetAuthenticatedUserController extends AbstractController
 {
-    #[Route(path: '/auth/me', name: 'auth.me', methods: ['GET'])]
+    #[Route(path: '/auth/me', name: 'auth.get-user', methods: ['GET'])]
     public function __invoke(AuthService $authService, NormalizerInterface $normalizer,): JsonResponse
     {
         $user = $authService->getUser();

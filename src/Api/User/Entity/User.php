@@ -152,12 +152,9 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
         return $this;
     }
 
-    /**
-     * @return array<int, UserRole>
-     */
     public function getRoles(): array
     {
-        return array_map(static fn (string $role): UserRole => UserRole::from($role), $this->roles);
+        return $this->roles;
     }
 
     public function eraseCredentials(): void
