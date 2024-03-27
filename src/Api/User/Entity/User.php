@@ -69,12 +69,14 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
     private array $roles;
 
     #[ORM\Column(type: Types::STRING)]
-    #[NotBlank]
+    #[Ignore]
+    private ?string $password;
+
+    #[NotBlank(['groups' => ['password']])]
     #[Type('string')]
     #[Length(min: 8, max: 255)]
     #[PasswordStrength(minScore: PasswordStrength::STRENGTH_MEDIUM)]
-    #[Ignore]
-    private string $password;
+    private ?string $plainPassword = null;
 
     public function __construct()
     {
@@ -140,6 +142,19 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
         return $this;
     }
 
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(#[\SensitiveParameter] ?string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
+        $this->password = null;
+
+        return $this;
+    }
+
     public function getStatus(): UserStatus
     {
         return $this->status;
@@ -152,6 +167,13 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
         return $this;
     }
 
+    public function setRoles(array $roles): self
+    {
+        $this->roles = $roles;
+
+        return $this;
+    }
+
     public function getRoles(): array
     {
         return $this->roles;
@@ -159,6 +181,6 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
 
     public function eraseCredentials(): void
     {
-        // nothing to erase
+        $this->plainPassword = null;
     }
 }

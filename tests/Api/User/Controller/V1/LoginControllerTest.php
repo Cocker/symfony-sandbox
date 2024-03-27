@@ -6,10 +6,9 @@ namespace App\Tests\Api\User\Controller\V1;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
-use App\Api\User\Fixture\ExistingEmailUserFixture;
+use App\Api\User\Entity\Factory\UserFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
-use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
 use Symfony\Component\HttpFoundation\Response;
 
 class LoginControllerTest extends ApiTestCase
@@ -17,7 +16,6 @@ class LoginControllerTest extends ApiTestCase
     use ReloadDatabaseTrait;
 
     private EntityManagerInterface $entityManager;
-    private DatabaseToolCollection $databaseToolCollection;
     private Client $client;
 
     protected function setUp(): void
@@ -26,20 +24,19 @@ class LoginControllerTest extends ApiTestCase
             ->get('doctrine')
             ->getManager();
 
-        $this->databaseToolCollection = static::getContainer()
-            ->get(DatabaseToolCollection::class);
-
         $this->client = static::createClient();
     }
 
     public function test_user_can_login(): void
     {
-        $this->databaseToolCollection->get()->loadFixtures([ExistingEmailUserFixture::class]);
+        $userProxy = UserFactory::new()
+            ->withPassword($plainPassword = '!@#Qwerty123$%^')
+            ->create();
 
         $response = $this->client->request('POST','/api/v1/auth/login', [
             'body' => json_encode([
-                'email' => ExistingEmailUserFixture::EXISTING_EMAIL,
-                'password' => ExistingEmailUserFixture::DEFAULT_PASSWORD,
+                'email' => $userProxy->getEmail(),
+                'password' => $plainPassword,
             ], JSON_THROW_ON_ERROR)
         ]);
 
@@ -60,7 +57,9 @@ class LoginControllerTest extends ApiTestCase
 
     public function test_it_returns_401_if_invalid_credentials_are_provided(): void
     {
-        $this->databaseToolCollection->get()->loadFixtures([ExistingEmailUserFixture::class]);
+        $user = UserFactory::new()
+            ->withPassword('!@#Qwerty123$%^')
+            ->create();
 
         $this->client->request('POST','/api/v1/auth/login', [
             'body' => json_encode([
@@ -77,6 +76,6 @@ class LoginControllerTest extends ApiTestCase
         parent::tearDown();
 
         $this->entityManager->close();
-        unset($this->entityManager, $this->databaseToolCollection);
+        unset($this->entityManager);
     }
 }

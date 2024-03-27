@@ -6,12 +6,11 @@ use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Api\User\Entity\Enum\UserRole;
 use App\Api\User\Entity\Enum\UserStatus;
+use App\Api\User\Entity\Factory\UserFactory;
 use App\Api\User\Entity\User;
-use App\Api\User\Fixture\ExistingEmailUserFixture;
 use Doctrine\ORM\EntityManagerInterface;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
 use Symfony\Component\HttpFoundation\Response;
 
 class GetAuthenticatedUserControllerTest extends ApiTestCase
@@ -19,7 +18,6 @@ class GetAuthenticatedUserControllerTest extends ApiTestCase
     use ReloadDatabaseTrait;
 
     private EntityManagerInterface $entityManager;
-    private DatabaseToolCollection $databaseToolCollection;
     private Client $client;
 
     protected function setUp(): void
@@ -27,9 +25,6 @@ class GetAuthenticatedUserControllerTest extends ApiTestCase
         $this->entityManager = static::getContainer()
             ->get('doctrine')
             ->getManager();
-
-        $this->databaseToolCollection = static::getContainer()
-            ->get(DatabaseToolCollection::class);
 
         $this->client = static::createClient();
     }
@@ -42,9 +37,9 @@ class GetAuthenticatedUserControllerTest extends ApiTestCase
 
     public function test_it_returns_user_if_authenticated(): void
     {
-        $this->databaseToolCollection->get()->loadFixtures([ExistingEmailUserFixture::class]);
-        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => ExistingEmailUserFixture::EXISTING_EMAIL]);
-        $token = $this->getContainer()->get(JWTTokenManagerInterface::class)->create($user);
+        $userProxy = UserFactory::createOne();
+
+        $token = $this->getContainer()->get(JWTTokenManagerInterface::class)->create($userProxy->object());
 
         $this->client->request(
             'GET',
@@ -53,7 +48,7 @@ class GetAuthenticatedUserControllerTest extends ApiTestCase
         );
 
         $this->assertResponseStatusCodeSame(Response::HTTP_OK);
-        $this->assertJsonContains(['email' => ExistingEmailUserFixture::EXISTING_EMAIL]);
+        $this->assertJsonContains(['email' => $userProxy->getEmail()]);
     }
 
     protected function tearDown(): void
@@ -61,6 +56,6 @@ class GetAuthenticatedUserControllerTest extends ApiTestCase
         parent::tearDown();
 
         $this->entityManager->close();
-        unset($this->entityManager, $this->databaseToolCollection);
+        unset($this->entityManager);
     }
 }

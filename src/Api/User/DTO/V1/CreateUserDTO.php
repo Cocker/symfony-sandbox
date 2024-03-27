@@ -12,7 +12,7 @@ readonly class CreateUserDTO extends AbstractDTO
     public string $firstName;
     public string $lastName;
     public string $email;
-    public string $password;
+    public string $plainPassword;
 
     public static function fromRequest(Request $request): static
     {
@@ -23,7 +23,7 @@ readonly class CreateUserDTO extends AbstractDTO
         $dto->firstName = $payload['firstName'] ?? '';
         $dto->lastName = $payload['lastName'] ?? '';
         $dto->email = $payload['email'] ?? '';
-        $dto->password = $payload['password'] ?? '';
+        $dto->plainPassword = $payload['password'] ?? '';
 
         return $dto;
     }

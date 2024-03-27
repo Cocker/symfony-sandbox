@@ -8,12 +8,11 @@ use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Api\User\Entity\Enum\UserRole;
 use App\Api\User\Entity\Enum\UserStatus;
+use App\Api\User\Entity\Factory\UserFactory;
 use App\Api\User\Entity\User;
-use App\Api\User\Fixture\ExistingEmailUserFixture;
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
-use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -22,7 +21,6 @@ class CreateUserControllerTest extends ApiTestCase
     use ReloadDatabaseTrait;
 
     private EntityManagerInterface $entityManager;
-    private DatabaseToolCollection $databaseToolCollection;
     private Client $client;
 
     protected function setUp(): void
@@ -30,9 +28,6 @@ class CreateUserControllerTest extends ApiTestCase
         $this->entityManager = static::getContainer()
             ->get('doctrine')
             ->getManager();
-
-        $this->databaseToolCollection = static::getContainer()
-            ->get(DatabaseToolCollection::class);
 
         $this->client = static::createClient();
     }
@@ -107,13 +102,13 @@ class CreateUserControllerTest extends ApiTestCase
 
     public function test_it_returns_error_if_email_already_exists(): void
     {
-        $this->databaseToolCollection->get()->loadFixtures([ExistingEmailUserFixture::class]);
+        $existingUserProxy = UserFactory::createOne();
 
         $this->client->request('POST','/api/v1/users', [
             'body' => json_encode([
                 'firstName' => 'Any last name',
                 'lastName' => 'Any last name',
-                'email' => $email = ExistingEmailUserFixture::EXISTING_EMAIL,
+                'email' => $email = $existingUserProxy->getEmail(),
                 'password' => '?@Qwerty123#!',
             ], JSON_THROW_ON_ERROR)
         ]);
@@ -130,6 +125,6 @@ class CreateUserControllerTest extends ApiTestCase
         parent::tearDown();
 
         $this->entityManager->close();
-        unset($this->entityManager, $this->databaseToolCollection);
+        unset($this->entityManager);
     }
 }

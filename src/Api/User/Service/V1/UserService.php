@@ -10,14 +10,12 @@ use App\Api\User\DTO\V1\UpdateUserDTO;
 use App\Api\User\Entity\Enum\UserStatus;
 use App\Api\User\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserService
 {
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly ValidatorInterface $validator,
-        protected readonly UserPasswordHasherInterface $userPasswordHasher,
     ) {
         //
     }
@@ -30,14 +28,10 @@ class UserService
             ->setLastName($createUserDTO->lastName)
             ->setEmail($createUserDTO->email)
             ->setStatus(UserStatus::ACTIVE)
-            ->setPassword($createUserDTO->password)
+            ->setPlainPassword($createUserDTO->plainPassword)
         ;
 
         $this->validator->validate($user);
-
-        // after password was validated we can hash it
-        $hashedPassword = $this->userPasswordHasher->hashPassword($user, $createUserDTO->password);
-        $user->setPassword($hashedPassword);
 
         $this->entityManager->persist($user);
 

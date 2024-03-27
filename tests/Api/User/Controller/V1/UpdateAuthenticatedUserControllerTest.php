@@ -6,31 +6,19 @@ namespace App\Tests\Api\User\Controller\V1;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
-use App\Api\User\Entity\User;
-use App\Api\User\Fixture\ExistingEmailUserFixture;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Api\User\Entity\Factory\UserFactory;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use Liip\TestFixturesBundle\Services\DatabaseToolCollection;
 use Symfony\Component\HttpFoundation\Response;
 
 class UpdateAuthenticatedUserControllerTest extends ApiTestCase
 {
     use ReloadDatabaseTrait;
 
-    private EntityManagerInterface $entityManager;
-    private DatabaseToolCollection $databaseToolCollection;
     private Client $client;
 
     protected function setUp(): void
     {
-        $this->entityManager = static::getContainer()
-            ->get('doctrine')
-            ->getManager();
-
-        $this->databaseToolCollection = static::getContainer()
-            ->get(DatabaseToolCollection::class);
-
         $this->client = static::createClient();
     }
 
@@ -46,11 +34,11 @@ class UpdateAuthenticatedUserControllerTest extends ApiTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
     }
 
-    public function ktest_it_returns_validation_errors(): void
+    public function test_it_returns_validation_errors(): void
     {
-        $this->databaseToolCollection->get()->loadFixtures([ExistingEmailUserFixture::class]);
-        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => ExistingEmailUserFixture::EXISTING_EMAIL]);
-        $token = $this->getContainer()->get(JWTTokenManagerInterface::class)->create($user);
+        $userProxy = UserFactory::createOne();
+
+        $token = $this->getContainer()->get(JWTTokenManagerInterface::class)->create($userProxy->object());
 
         $this->client->request(
             'PUT',
@@ -69,10 +57,8 @@ class UpdateAuthenticatedUserControllerTest extends ApiTestCase
 
     public function test_it_updates_the_user(): void
     {
-        $this->databaseToolCollection->get()->loadFixtures([ExistingEmailUserFixture::class]);
-        $userRepository = $this->entityManager->getRepository(User::class);
-        $user = $userRepository->findOneBy(['email' => ExistingEmailUserFixture::EXISTING_EMAIL]);
-        $token = $this->getContainer()->get(JWTTokenManagerInterface::class)->create($user);
+        $userProxy = UserFactory::createOne();
+        $token = $this->getContainer()->get(JWTTokenManagerInterface::class)->create($userProxy->object());
 
         $this->client->request(
             'PUT',
@@ -88,19 +74,9 @@ class UpdateAuthenticatedUserControllerTest extends ApiTestCase
 
         $this->assertResponseStatusCodeSame(Response::HTTP_OK);
 
-        $this->entityManager->clear(); // clear cache
+        $userProxy->refresh();
 
-        $updatedUser = $userRepository->findOneBy(['email' => ExistingEmailUserFixture::EXISTING_EMAIL]);
-
-        $this->assertSame($firstName, $updatedUser->getFirstName());
-        $this->assertSame($lastName, $updatedUser->getLastName());
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
-        $this->entityManager->close();
-        unset($this->entityManager, $this->databaseToolCollection);
+        $this->assertSame($firstName, $userProxy->getFirstName());
+        $this->assertSame($lastName, $userProxy->getLastName());
     }
 }
