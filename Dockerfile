@@ -20,6 +20,8 @@ RUN apk add --no-cache \
 		file \
 		gettext \
 		git \
+        autoconf \
+        build-base \
 	;
 
 RUN set -eux; \
@@ -39,6 +41,8 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN install-php-extensions pdo_pgsql
 ###< doctrine/doctrine-bundle ###
 ###< recipes ###
+
+RUN pecl install redis && docker-php-ext-enable redis
 
 COPY --link frankenphp/conf.d/app.ini $PHP_INI_DIR/conf.d/
 COPY --link --chmod=755 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint

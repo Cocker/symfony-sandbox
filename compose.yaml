@@ -1,3 +1,7 @@
+networks:
+  symfony:
+    driver: bridge
+
 services:
   php:
     image: ${IMAGES_PREFIX:-}app-php
@@ -52,9 +56,27 @@ services:
       # - ./docker/db/data:/var/lib/postgresql/data:rw
 ###< doctrine/doctrine-bundle ###
 
+  redis:
+    image: redis:7.2
+    command: "redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}"
+    volumes:
+      - redis_data:/data
+
+  redis-webui:
+    image: erikdubbelboer/phpredisadmin
+    environment:
+      REDIS_1_HOST: "${REDIS_HOST}"
+      REDIS_1_PORT: "${REDIS_PORT}"
+      REDIS_1_AUTH: "${REDIS_PASSWORD}"
+    depends_on:
+      - redis
+    ports:
+      - "8081:80"
+
 volumes:
   caddy_data:
   caddy_config:
+  redis_data:
 ###> symfony/mercure-bundle ###
 ###< symfony/mercure-bundle ###
 
