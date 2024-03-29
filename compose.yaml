@@ -69,6 +69,11 @@ services:
     ports:
       - "8081:80"
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "15672:15672"
+
 volumes:
   caddy_data:
   caddy_config:

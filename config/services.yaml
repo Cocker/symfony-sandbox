@@ -9,16 +9,7 @@ parameters:
     app.redis_password: '%env(REDIS_PASSWORD)%'
     app.redis_database: 1
     app.redis_dsn: '%env(resolve:REDIS_URL)%'
-
-when@test:
-    services:
-        App\Service\Redis\RedisService:
-            public: true
-            arguments:
-                $redisHost: '%app.redis_host%'
-                $redisPort: '%app.redis_port%'
-                $redisPassword: '%app.redis_password%'
-                $redisDatabase: 2
+    app.admin_email: '%env(ADMIN_EMAIL)%'
 
 services:
     # default configuration for services in *this* file
@@ -40,5 +31,21 @@ services:
             $redisPassword: '%app.redis_password%'
             $redisDatabase: '%app.redis_database%'
 
+    App\Service\VerificationCode\VerificationCodeGeneratorInterface: '@App\Service\VerificationCode\DigitVerificationCodeGenerator'
+
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+
+when@test:
+    services:
+        _defaults:
+            public: true
+        App\Service\Redis\RedisService:
+            arguments:
+                $redisHost: '%app.redis_host%'
+                $redisPort: '%app.redis_port%'
+                $redisPassword: '%app.redis_password%'
+                $redisDatabase: 2
+        App\Service\VerificationCode\VerificationCodeGeneratorInterface: '@App\Service\VerificationCode\StaticVerificationCodeGenerator'

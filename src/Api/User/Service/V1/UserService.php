@@ -27,7 +27,6 @@ class UserService
         $user->setFirstName($createUserDTO->firstName)
             ->setLastName($createUserDTO->lastName)
             ->setEmail($createUserDTO->email)
-            ->setStatus(UserStatus::ACTIVE)
             ->setPlainPassword($createUserDTO->plainPassword)
         ;
 
@@ -52,5 +51,10 @@ class UserService
         $this->entityManager->flush();
 
         return $user;
+    }
+
+    public function findOneBy(array $criteria): ?User
+    {
+        return $this->entityManager->getRepository(User::class)->findOneBy($criteria);
     }
 }

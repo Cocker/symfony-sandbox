@@ -22,6 +22,8 @@ RUN apk add --no-cache \
 		git \
         autoconf \
         build-base \
+        rabbitmq-c \
+        rabbitmq-c-dev \
 	;
 
 RUN set -eux; \
@@ -43,6 +45,7 @@ RUN install-php-extensions pdo_pgsql
 ###< recipes ###
 
 RUN pecl install redis && docker-php-ext-enable redis
+RUN pecl install amqp && docker-php-ext-enable amqp
 
 COPY --link frankenphp/conf.d/app.ini $PHP_INI_DIR/conf.d/
 COPY --link --chmod=755 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint

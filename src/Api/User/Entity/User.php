@@ -10,6 +10,7 @@ use App\Api\User\Entity\Enum\UserStatus;
 use App\Api\User\Repository\V1\UserRepository;
 use App\Entity\AbstractEntity;
 use App\Entity\Trait\Timestampable;
+use Carbon\CarbonImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -72,6 +73,10 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
     #[Ignore]
     private ?string $password;
 
+    #[ORM\Column(name: 'email_verified_at', type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    #[Groups(['v1_metadata'])]
+    private ?\DateTimeImmutable $emailVerifiedAt = null;
+
     #[NotBlank(['groups' => ['password']])]
     #[Type('string')]
     #[Length(min: 8, max: 255)]
@@ -80,7 +85,7 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
 
     public function __construct()
     {
-        $this->setStatus(UserStatus::ACTIVE);
+        $this->status = UserStatus::UNVERIFIED;
         $this->roles = [UserRole::USER->value];
     }
 
@@ -177,6 +182,25 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
     public function getRoles(): array
     {
         return $this->roles;
+    }
+
+    public function getEmailVerifiedAt(): ?\DateTimeImmutable
+    {
+        if ($this->emailVerifiedAt === null) {
+            return null;
+        }
+
+        return CarbonImmutable::create($this->emailVerifiedAt);
+    }
+
+    public function setEmailVerifiedAt(?\DateTimeImmutable $emailVerifiedAt): void
+    {
+        $this->emailVerifiedAt = $emailVerifiedAt;
+    }
+
+    public function isEmailVerified(): bool
+    {
+        return $this->emailVerifiedAt !== null;
     }
 
     public function eraseCredentials(): void

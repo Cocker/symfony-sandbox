@@ -6,6 +6,7 @@ use App\Api\User\Entity\Enum\UserRole;
 use App\Api\User\Entity\Enum\UserStatus;
 use App\Api\User\Entity\User;
 use App\Api\User\Repository\V1\UserRepository;
+use Carbon\CarbonImmutable;
 use Zenstruck\Foundry\ModelFactory;
 use Zenstruck\Foundry\Proxy;
 use Zenstruck\Foundry\RepositoryProxy;
@@ -36,6 +37,14 @@ final class UserFactory extends ModelFactory
         return $this->addState(['plainPassword' => $plainPassword]);
     }
 
+    public function unverified(): UserFactory
+    {
+        return $this->addState([
+            'status' => UserStatus::UNVERIFIED,
+            'email_verified_at' => null,
+        ]);
+    }
+
     protected function getDefaults(): array
     {
         return [
@@ -45,6 +54,7 @@ final class UserFactory extends ModelFactory
             'plainPassword' => self::faker()->password(minLength:  8),
             'roles' => [UserRole::USER->value],
             'status' => UserStatus::ACTIVE,
+            'email_verified_at' => CarbonImmutable::now()->subDay(),
         ];
     }
 

@@ -10,6 +10,9 @@ use App\Api\User\Entity\Enum\UserRole;
 use App\Api\User\Entity\Enum\UserStatus;
 use App\Api\User\Entity\Factory\UserFactory;
 use App\Api\User\Entity\User;
+use App\Service\Redis\RedisService;
+use App\Service\VerificationCode\Enum\VerificationType;
+use App\Service\VerificationCode\StaticVerificationCodeGenerator;
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
@@ -36,6 +39,8 @@ class CreateUserControllerTest extends ApiTestCase
     {
         CarbonImmutable::setTestNow($now = CarbonImmutable::now()->milliseconds(0));
 
+        $redisService = static::getContainer()->get(RedisService::class);
+
         $this->client->request('POST','/api/v1/users', [
             'body' => json_encode([
                 'firstName' => $firstName = 'First',
@@ -47,13 +52,14 @@ class CreateUserControllerTest extends ApiTestCase
 
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
         $this->assertJsonEquals([
-            'status' => UserStatus::ACTIVE->value,
+            'status' => UserStatus::UNVERIFIED->value,
             'firstName' => $firstName,
             'lastName' => $lastName,
             'email'=> $email,
             'roles' => [UserRole::USER->value],
             'createdAt' => $now->toIso8601String(),
             'updatedAt' => $now->toIso8601String(),
+            'emailVerifiedAt' => null,
         ]);
 
         $userRepository = $this->entityManager->getRepository(User::class);
@@ -65,13 +71,21 @@ class CreateUserControllerTest extends ApiTestCase
         $this->assertSame($firstName, $createdUser->getFirstName());
         $this->assertSame($lastName, $createdUser->getLastName());
         $this->assertSame($email, $createdUser->getEmail());
-        $this->assertSame(UserStatus::ACTIVE, $createdUser->getStatus());
+        $this->assertSame(UserStatus::UNVERIFIED, $createdUser->getStatus());
         $this->assertSame([UserRole::USER->value], $createdUser->getRoles());
         $this->assertTrue($now->eq($createdUser->getCreatedAt()));
         $this->assertTrue($now->eq($createdUser->getUpdatedAt()));
 
         $userPasswordHasher = static::getContainer()->get(UserPasswordHasherInterface::class);
         $this->assertTrue($userPasswordHasher->isPasswordValid($createdUser, $password));
+
+        $this->assertQueuedEmailCount(1);
+        $email = $this->getMailerMessage();
+
+        $this->assertEquals('Verify your email', $email->getSubject());
+        $this->assertStringContainsString(StaticVerificationCodeGenerator::CODE, $email->getTextBody());
+
+        $this->assertTrue($redisService->has(VerificationType::VERIFY_EMAIL->fullKey($createdUser->getUserIdentifier())));
     }
 
     public function test_it_returns_validation_errors(): void
@@ -97,7 +111,6 @@ class CreateUserControllerTest extends ApiTestCase
         $this->assertStringContainsString('lastName', $validationErorrs);
         $this->assertStringContainsString('email', $validationErorrs);
         $this->assertStringContainsString('password', $validationErorrs);
-
     }
 
     public function test_it_returns_error_if_email_already_exists(): void
