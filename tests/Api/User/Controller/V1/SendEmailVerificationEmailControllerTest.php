@@ -59,8 +59,15 @@ class SendEmailVerificationEmailControllerTest extends ApiTestCase
             'body' => json_encode(['email' => $user->getEmail()], JSON_THROW_ON_ERROR)
         ]);
 
+        $redisService = static::getContainer()->get(RedisService::class);
+
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
         $this->assertQueuedEmailCount(1);
+
+        $this->assertEquals(
+            VerificationType::VERIFY_EMAIL->ttlSeconds(),
+            $redisService->getTtlSeconds(VerificationType::VERIFY_EMAIL->fullKey($user->object()->getUserIdentifier()))
+        );
     }
 
     public function test_it_overwrites_existing_verification_code(): void

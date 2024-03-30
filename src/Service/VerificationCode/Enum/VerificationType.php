@@ -12,4 +12,11 @@ enum VerificationType: string
     {
         return "$this->value:$uniqueId";
     }
+
+    public function ttlSeconds(): int
+    {
+        return match ($this) {
+            self::VERIFY_EMAIL => 5 * 60,
+        };
+    }
 }

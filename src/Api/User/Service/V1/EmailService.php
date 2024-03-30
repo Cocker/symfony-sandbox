@@ -36,7 +36,11 @@ class EmailService
 
         $code = $this->verificationCodeGenerator->generate();
 
-        $this->redisService->set(VerificationType::VERIFY_EMAIL->fullKey($user->getUserIdentifier()), $code);
+        $this->redisService->set(
+            VerificationType::VERIFY_EMAIL->fullKey($user->getUserIdentifier()),
+            $code,
+            VerificationType::VERIFY_EMAIL->ttlSeconds(),
+        );
 
         $email = (new Email())
             ->to($user->getEmail())
