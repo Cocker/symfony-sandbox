@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\VerificationCode;
+namespace App\Api\User\Service\Shared\VerificationCodeGenerator;
 
 interface VerificationCodeGeneratorInterface
 {

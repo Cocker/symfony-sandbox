@@ -6,7 +6,6 @@ namespace App\Api\User\Controller\V1;
 
 use App\Api\User\DTO\V1\CreateUserDTO;
 use App\Api\User\Orchestrator\V1\UserOrchestrator;
-use App\Api\User\Service\V1\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

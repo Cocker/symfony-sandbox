@@ -7,14 +7,17 @@ namespace App\Api\User\Orchestrator\V1;
 use App\Api\User\DTO\V1\CreateUserDTO;
 use App\Api\User\DTO\V1\UpdateUserDTO;
 use App\Api\User\Entity\User;
-use App\Api\User\Service\V1\EmailService;
+use App\Api\User\Service\Shared\VerificationCodeGenerator\Enum\VerificationType;
+use App\Api\User\Service\V1\EmailVerificationService;
 use App\Api\User\Service\V1\UserService;
+use App\Api\User\Service\V1\VerificationService;
 
 class UserOrchestrator
 {
     public function __construct(
         protected readonly UserService $userService,
-        protected readonly EmailService $emailService,
+        protected readonly VerificationService $verificationGeneratorService,
+        protected readonly EmailVerificationService $emailVerificationService,
     ) {
         //
     }
@@ -23,7 +26,9 @@ class UserOrchestrator
     {
         $user = $this->userService->create($createUserDTO);
 
-        $this->emailService->sendVerificationCode($user);
+        $code = $this->verificationGeneratorService->new(VerificationType::VERIFY_EMAIL, $user);
+
+        $this->emailVerificationService->sendVerificationCode($user, $code);
 
         return $user;
     }

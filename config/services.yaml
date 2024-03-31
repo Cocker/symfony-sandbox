@@ -4,10 +4,6 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    app.redis_host: '%env(REDIS_HOST)%'
-    app.redis_port: '%env(int:REDIS_PORT)%'
-    app.redis_password: '%env(REDIS_PASSWORD)%'
-    app.redis_database: 1
     app.redis_dsn: '%env(resolve:REDIS_URL)%'
     app.admin_email: '%env(ADMIN_EMAIL)%'
 
@@ -24,28 +20,13 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    App\Service\Redis\RedisService:
-        arguments:
-            $redisHost: '%app.redis_host%'
-            $redisPort: '%app.redis_port%'
-            $redisPassword: '%app.redis_password%'
-            $redisDatabase: '%app.redis_database%'
-
-    App\Service\VerificationCode\VerificationCodeGeneratorInterface: '@App\Service\VerificationCode\DigitVerificationCodeGenerator'
+    App\Api\User\Service\Shared\VerificationCodeGenerator\VerificationCodeGeneratorInterface: '@App\Api\User\Service\Shared\VerificationCodeGenerator\DigitVerificationCodeGenerator'
 
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
-
-
 when@test:
     services:
         _defaults:
             public: true
-        App\Service\Redis\RedisService:
-            arguments:
-                $redisHost: '%app.redis_host%'
-                $redisPort: '%app.redis_port%'
-                $redisPassword: '%app.redis_password%'
-                $redisDatabase: 2
-        App\Service\VerificationCode\VerificationCodeGeneratorInterface: '@App\Service\VerificationCode\StaticVerificationCodeGenerator'
+        App\Api\User\Service\Shared\VerificationCodeGenerator\VerificationCodeGeneratorInterface: '@App\Api\User\Service\Shared\VerificationCodeGenerator\StaticVerificationCodeGenerator'

@@ -54,16 +54,16 @@ services:
 
   redis:
     image: redis:7.2
-    command: "redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}"
+    command: "redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-!ChangeMe!}"
     volumes:
       - redis_data:/data
 
   redis-webui:
     image: erikdubbelboer/phpredisadmin
     environment:
-      REDIS_1_HOST: "${REDIS_HOST}"
-      REDIS_1_PORT: "${REDIS_PORT}"
-      REDIS_1_AUTH: "${REDIS_PASSWORD}"
+      REDIS_1_HOST: ${REDIS_HOST:-redis}
+      REDIS_1_PORT: ${REDIS_PORT:-6379}
+      REDIS_1_AUTH: ${REDIS_PASSWORD:-!ChangeMe!}
     depends_on:
       - redis
     ports:

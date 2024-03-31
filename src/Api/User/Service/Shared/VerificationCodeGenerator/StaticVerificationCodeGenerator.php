@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Service\VerificationCode;
+namespace App\Api\User\Service\Shared\VerificationCodeGenerator;
 
 class StaticVerificationCodeGenerator implements VerificationCodeGeneratorInterface
 {

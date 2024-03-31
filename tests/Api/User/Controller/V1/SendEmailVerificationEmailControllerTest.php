@@ -5,12 +5,14 @@ namespace App\Tests\Api\User\Controller\V1;
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Api\User\Entity\Factory\UserFactory;
-use App\Api\User\Service\V1\EmailService;
-use App\Service\Redis\RedisService;
-use App\Service\VerificationCode\Enum\VerificationType;
-use App\Service\VerificationCode\VerificationCodeGeneratorInterface;
+use App\Api\User\Service\Shared\VerificationCodeGenerator\Enum\VerificationType;
+use App\Api\User\Service\Shared\VerificationCodeGenerator\StaticVerificationCodeGenerator;
+use App\Api\User\Service\Shared\VerificationCodeGenerator\VerificationCodeGeneratorInterface;
+use App\Api\User\Service\V1\EmailVerificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
+use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 class SendEmailVerificationEmailControllerTest extends ApiTestCase
@@ -19,6 +21,7 @@ class SendEmailVerificationEmailControllerTest extends ApiTestCase
 
     private EntityManagerInterface $entityManager;
     private Client $client;
+    private CacheItemPoolInterface $verificationPool;
 
     protected function setUp(): void
     {
@@ -27,6 +30,8 @@ class SendEmailVerificationEmailControllerTest extends ApiTestCase
             ->getManager();
 
         $this->client = static::createClient();
+        $this->verificationPool = static::getContainer()->get('verification_pool');
+        $this->verificationPool->clear();
     }
 
     public function test_it_doesnt_send_email_if_user_doesnt_exist(): void
@@ -47,6 +52,7 @@ class SendEmailVerificationEmailControllerTest extends ApiTestCase
             'body' => json_encode(['email' => $user->getEmail()], JSON_THROW_ON_ERROR)
         ]);
 
+        $this->assertFalse($this->verificationPool->getItem(VerificationType::VERIFY_EMAIL->fullKey($user->object()))->isHit());
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
         $this->assertQueuedEmailCount(0);
     }
@@ -59,15 +65,12 @@ class SendEmailVerificationEmailControllerTest extends ApiTestCase
             'body' => json_encode(['email' => $user->getEmail()], JSON_THROW_ON_ERROR)
         ]);
 
-        $redisService = static::getContainer()->get(RedisService::class);
-
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
         $this->assertQueuedEmailCount(1);
 
-        $this->assertEquals(
-            VerificationType::VERIFY_EMAIL->ttlSeconds(),
-            $redisService->getTtlSeconds(VerificationType::VERIFY_EMAIL->fullKey($user->object()->getUserIdentifier()))
-        );
+        /** @var CacheItemInterface $cacheItem */
+        $cacheItem = $this->verificationPool->getItem(VerificationType::VERIFY_EMAIL->fullKey($user->object()));
+        $this->assertEquals(StaticVerificationCodeGenerator::CODE, $cacheItem->get());
     }
 
     public function test_it_overwrites_existing_verification_code(): void
@@ -76,16 +79,15 @@ class SendEmailVerificationEmailControllerTest extends ApiTestCase
 
         $verificatonCodeGeneratorMock = $this->createMock(VerificationCodeGeneratorInterface::class);
         $verificatonCodeGeneratorMock
-            ->expects($this->exactly(2))
+            ->expects($this->once())
             ->method('generate')
-            ->willReturn($code = '222222', $newCode = '333333');
+            ->willReturn($newCode = '333333');
 
         static::getContainer()->set(VerificationCodeGeneratorInterface::class, $verificatonCodeGeneratorMock);
 
-        $emailService = static::getContainer()->get(EmailService::class);
-        $emailService->sendVerificationCode($user->object());
-
-        $redisService = static::getContainer()->get(RedisService::class);
+        $cacheItem = $this->verificationPool->getItem(VerificationType::VERIFY_EMAIL->fullKey($user->object()));
+        $cacheItem->set($oldCode = '222222');
+        $this->verificationPool->save($cacheItem);
 
         $this->client->request('POST', '/api/v1/email/send-verification',  [
             'body' => json_encode([
@@ -95,10 +97,11 @@ class SendEmailVerificationEmailControllerTest extends ApiTestCase
 
         $this->assertEquals(
             $newCode,
-            $redisService->get(VerificationType::VERIFY_EMAIL->fullKey($user->getUserIdentifier()))
+            $this->verificationPool->getItem(VerificationType::VERIFY_EMAIL->fullKey($user->object()))->get()
         );
+
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
-        $this->assertQueuedEmailCount(2);
+        $this->assertQueuedEmailCount(1);
     }
 
     protected function tearDown(): void

@@ -10,9 +10,8 @@ use App\Api\User\Entity\Enum\UserRole;
 use App\Api\User\Entity\Enum\UserStatus;
 use App\Api\User\Entity\Factory\UserFactory;
 use App\Api\User\Entity\User;
-use App\Service\Redis\RedisService;
-use App\Service\VerificationCode\Enum\VerificationType;
-use App\Service\VerificationCode\StaticVerificationCodeGenerator;
+use App\Api\User\Service\Shared\VerificationCodeGenerator\Enum\VerificationType;
+use App\Api\User\Service\Shared\VerificationCodeGenerator\StaticVerificationCodeGenerator;
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
@@ -39,7 +38,7 @@ class CreateUserControllerTest extends ApiTestCase
     {
         CarbonImmutable::setTestNow($now = CarbonImmutable::now()->milliseconds(0));
 
-        $redisService = static::getContainer()->get(RedisService::class);
+        $verificationPool = static::getContainer()->get('verification_pool');
 
         $this->client->request('POST','/api/v1/users', [
             'body' => json_encode([
@@ -85,7 +84,9 @@ class CreateUserControllerTest extends ApiTestCase
         $this->assertEquals('Verify your email', $email->getSubject());
         $this->assertStringContainsString(StaticVerificationCodeGenerator::CODE, $email->getTextBody());
 
-        $this->assertTrue($redisService->has(VerificationType::VERIFY_EMAIL->fullKey($createdUser->getUserIdentifier())));
+        $codeCacheItem = $verificationPool->getItem(VerificationType::VERIFY_EMAIL->fullKey($createdUser));
+        $this->assertTrue($codeCacheItem->isHit());
+        $this->assertEquals(StaticVerificationCodeGenerator::CODE, $codeCacheItem->get());
     }
 
     public function test_it_returns_validation_errors(): void

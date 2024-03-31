@@ -6,11 +6,12 @@ use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Api\User\Entity\Enum\UserStatus;
 use App\Api\User\Entity\Factory\UserFactory;
-use App\Api\User\Service\V1\EmailService;
-use App\Service\VerificationCode\StaticVerificationCodeGenerator;
+use App\Api\User\Service\Shared\VerificationCodeGenerator\Enum\VerificationType;
+use App\Api\User\Service\Shared\VerificationCodeGenerator\StaticVerificationCodeGenerator;
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
+use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 class VerifyEmailControllerTest extends ApiTestCase
@@ -19,6 +20,7 @@ class VerifyEmailControllerTest extends ApiTestCase
 
     private EntityManagerInterface $entityManager;
     private Client $client;
+    private CacheItemPoolInterface $verificationPool;
 
     protected function setUp(): void
     {
@@ -27,6 +29,8 @@ class VerifyEmailControllerTest extends ApiTestCase
             ->getManager();
 
         $this->client = static::createClient();
+        $this->verificationPool = static::getContainer()->get('verification_pool');
+        $this->verificationPool->clear();
     }
 
     public function it_throws_error_if_validation_fails(): void
@@ -73,8 +77,9 @@ class VerifyEmailControllerTest extends ApiTestCase
             ->unverified()
             ->create();
 
-        $emailService = self::getContainer()->get(EmailService::class);
-        $emailService->sendVerificationCode($userProxy->object());
+        $cacheItem = $this->verificationPool->getItem(VerificationType::VERIFY_EMAIL->fullKey($userProxy->object()));
+        $cacheItem->set($code = StaticVerificationCodeGenerator::CODE);
+        $this->verificationPool->save($cacheItem);
 
         $this->client->request('POST', '/api/v1/email/verify',  [
             'body' => json_encode([
