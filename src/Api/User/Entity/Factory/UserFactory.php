@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Api\User\Entity\Factory;
 
 use App\Api\User\Entity\Enum\UserRole;
@@ -42,6 +44,16 @@ final class UserFactory extends ModelFactory
         return $this->addState([
             'status' => UserStatus::UNVERIFIED,
             'email_verified_at' => null,
+        ]);
+    }
+
+    public function createdAtLeastMoreThanDaysAgo(int $days): UserFactory
+    {
+        $minutes = random_int(1, 24 * 60);
+
+        return $this->addState([
+            'created_at' => (new \DateTimeImmutable(-$days . ' days'))
+                ->modify(-$minutes . ' minutes'),
         ]);
     }
 

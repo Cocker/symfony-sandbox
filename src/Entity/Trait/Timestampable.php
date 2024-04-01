@@ -22,6 +22,13 @@ trait Timestampable
         return CarbonImmutable::create($this->createdAt);
     }
 
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
     public function getUpdatedAt(): CarbonImmutable
     {
         return CarbonImmutable::create($this->updatedAt);
@@ -35,7 +42,7 @@ trait Timestampable
 
         $this->updatedAt = $now;
 
-        if (! $this->exists()) {
+        if (! $this->exists() && ! isset($this->createdAt)) {
             $this->createdAt = $now->clone();
         }
     }
