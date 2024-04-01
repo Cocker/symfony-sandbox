@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Api\User\Command;
 
 use App\Api\User\Repository\V1\UserRepository;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,13 +14,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Scheduler\Attribute\AsPeriodicTask;
 
 #[AsCommand('app:users:prune', 'Prune users')]
-#[AsPeriodicTask('20 seconds')]
+#[AsPeriodicTask('1 week')]
 class PruneUsersCommand extends Command
 {
-    public function __construct(
-        private readonly UserRepository $userRepository,
-        private readonly LoggerInterface $logger,
-    ) {
+    public function __construct(private readonly UserRepository $userRepository) {
         parent::__construct();
     }
 
@@ -41,8 +37,6 @@ class PruneUsersCommand extends Command
         } else {
             $count = $this->userRepository->pruneUsers();
         }
-
-        $this->logger->info('result', ['count' => $count]);
 
         $io->success("Deleted $count users");
 
