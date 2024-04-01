@@ -34,14 +34,8 @@ class AuthService
         return $this->JWTTokenManager->create($user);
     }
 
-    public function getUser(): User
+    public function getUser(): ?User
     {
-        $user = $this->security->getUser();
-
-        if ($user === null) {
-            throw UnauthenticatedException::new();
-        }
-
-        return $user;
+        return $this->security->getUser();
     }
 }

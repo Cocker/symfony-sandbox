@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Api\User\Controller\V1;
 
 use App\Api\User\DTO\V1\UpdateUserDTO;
-use App\Api\User\Service\V1\AuthService;
-use App\Api\User\Service\V1\UserService;
+use App\Api\User\Orchestrator\V1\AuthOrchestrator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,10 +19,9 @@ class UpdateAuthenticatedUserController extends AbstractController
     public function __invoke(
         Request $request,
         NormalizerInterface $normalizer,
-        AuthService $authService,
-        UserService $userService
+        AuthOrchestrator $authOrchestrator,
     ): JsonResponse {
-        $user = $userService->update($authService->getUser(), UpdateUserDTO::fromRequest($request));
+        $user = $authOrchestrator->updateUser(UpdateUserDTO::fromRequest($request));
 
         return $this->json(
             $normalizer->normalize($user, 'json', ['groups' => ['v1_personal', 'v1_metadata', 'timestamps']]),
