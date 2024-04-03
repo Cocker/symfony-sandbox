@@ -10,19 +10,27 @@ use App\Api\User\Entity\User;
 use App\Api\User\Exception\UnauthenticatedException;
 use App\Api\User\Service\V1\AuthService;
 use App\Api\User\Service\V1\UserService;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 
 class AuthOrchestrator
 {
     public function __construct(
         protected readonly UserService $userService,
         protected readonly AuthService $authService,
+        protected readonly RateLimiterFactory $antiBruteforceLimiter,
     ) {
         //
     }
 
     public function login(SignInDTO $signInDTO): string
     {
+        $limiter = $this->antiBruteforceLimiter->create($signInDTO->email);
+
+        $limiter->consume()->ensureAccepted();
+
         $token = $this->authService->login($signInDTO);
+
+        $limiter->reset();
 
         return $token;
     }

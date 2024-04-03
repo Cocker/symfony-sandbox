@@ -19,7 +19,8 @@ framework:
         pools:
             verification_pool:
                 adapter: cache.adapter.redis_encrypted
-
+            rate_limiter:
+                adapter: cache.adapter.redis
 services:
     cache.sodium_marshaller:
         class: Symfony\Component\Cache\Marshaller\SodiumMarshaller

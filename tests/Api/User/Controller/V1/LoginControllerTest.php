@@ -71,6 +71,29 @@ class LoginControllerTest extends ApiTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
     }
 
+    public function test_it_returns_error_if_rate_limit_exceeded(): void
+    {
+        for ($i = 0; $i < $rateLimit = 6; $i++) {
+            $response = $this->client->request('POST','/api/v1/auth/login', [
+                'body' => json_encode([
+                    'email' => 'invalid',
+                    'password' => 'invalid',
+                ], JSON_THROW_ON_ERROR)
+            ]);
+        }
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_TOO_MANY_REQUESTS);
+
+        $headers = $response->getHeaders(false);
+
+        $this->assertArrayHasKey(strtolower('X-Rate-Limit-Retry-After'), $headers);
+        $this->assertArrayHasKey(strtolower('X-Rate-Limit-Limit'), $headers);
+        $this->assertArrayHasKey(strtolower('X-Rate-Limit-Remaining'), $headers);
+        $this->assertArrayHasKey(strtolower('X-Rate-Limit-Reset'), $headers);
+
+        $this->assertEquals(0, $headers[strtolower('X-Rate-Limit-Remaining')][0]);
+    }
+
     protected function tearDown(): void
     {
         parent::tearDown();

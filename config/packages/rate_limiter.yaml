@@ -1,0 +1,6 @@
+framework:
+  rate_limiter:
+    anti_bruteforce:
+      policy: 'sliding_window'
+      limit: 5
+      interval: '5 minutes'
