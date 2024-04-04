@@ -9,6 +9,8 @@ readonly class SignInDTO extends AbstractDTO
 {
     public string $email;
     public string $password;
+    public string $ip;
+    public string $userAgent;
 
     public static function fromRequest(Request $request): static
     {
@@ -18,6 +20,8 @@ readonly class SignInDTO extends AbstractDTO
 
         $dto->email = $payload['email'];
         $dto->password = $payload['password'];
+        $dto->ip = $request->getClientIp();
+        $dto->userAgent = $request->headers->get('User-Agent', 'Unknown');
 
         return $dto;
     }

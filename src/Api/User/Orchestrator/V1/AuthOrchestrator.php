@@ -7,9 +7,12 @@ namespace App\Api\User\Orchestrator\V1;
 use App\Api\User\DTO\V1\SignInDTO;
 use App\Api\User\DTO\V1\UpdateUserDTO;
 use App\Api\User\Entity\User;
+use App\Api\User\Event\UserLoginEvent;
+use App\Api\User\Exception\InvalidCredentialsException;
 use App\Api\User\Exception\UnauthenticatedException;
 use App\Api\User\Service\V1\AuthService;
 use App\Api\User\Service\V1\UserService;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 
 class AuthOrchestrator
@@ -18,6 +21,7 @@ class AuthOrchestrator
         protected readonly UserService $userService,
         protected readonly AuthService $authService,
         protected readonly RateLimiterFactory $antiBruteforceLimiter,
+        protected readonly EventDispatcherInterface $eventDispatcher,
     ) {
         //
     }
@@ -28,7 +32,14 @@ class AuthOrchestrator
 
         $limiter->consume()->ensureAccepted();
 
-        $token = $this->authService->login($signInDTO);
+        $user = $this->userService->findOneBy(['email' => $signInDTO->email]);
+        if ($user === null) {
+            throw InvalidCredentialsException::new();
+        }
+
+        $token = $this->authService->login($user, $signInDTO);
+
+        $this->eventDispatcher->dispatch(new UserLoginEvent($user->getId(), $signInDTO));
 
         $limiter->reset();
 

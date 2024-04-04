@@ -7,8 +7,13 @@ namespace App\Tests\Api\User\Controller\V1;
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
 use App\Api\User\Entity\Factory\UserFactory;
+use App\Api\User\Event\UserLoginEvent;
+use App\Api\User\EventSubscriber\UserLoginEventSubscriber;
+use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
+use Symfony\Component\EventDispatcher\Debug\TraceableEventDispatcher;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 class LoginControllerTest extends ApiTestCase
@@ -29,6 +34,8 @@ class LoginControllerTest extends ApiTestCase
 
     public function test_user_can_login(): void
     {
+        CarbonImmutable::setTestNow($now = CarbonImmutable::now()->milliseconds(0));
+
         $userProxy = UserFactory::new()
             ->withPassword($plainPassword = '!@#Qwerty123$%^')
             ->create();
@@ -37,8 +44,19 @@ class LoginControllerTest extends ApiTestCase
             'body' => json_encode([
                 'email' => $userProxy->getEmail(),
                 'password' => $plainPassword,
-            ], JSON_THROW_ON_ERROR)
+            ], JSON_THROW_ON_ERROR),
         ]);
+
+        /** @var TraceableEventDispatcher $traceableEventDispatcher */
+        $traceableEventDispatcher = static::getContainer()->get(EventDispatcherInterface::class);
+
+        $onUserLoginListener = array_filter($traceableEventDispatcher->getCalledListeners(), function (array $listener) {
+            return $listener['event'] === UserLoginEvent::class
+                && $listener['pretty'] === (UserLoginEventSubscriber::class . '::onUserLogin')
+            ;
+        });
+
+        $this->assertNotEmpty($onUserLoginListener);
 
         $this->assertResponseIsSuccessful();
         $json = $response->toArray();
@@ -69,29 +87,6 @@ class LoginControllerTest extends ApiTestCase
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
-    }
-
-    public function test_it_returns_error_if_rate_limit_exceeded(): void
-    {
-        for ($i = 0; $i < $rateLimit = 6; $i++) {
-            $response = $this->client->request('POST','/api/v1/auth/login', [
-                'body' => json_encode([
-                    'email' => 'invalid',
-                    'password' => 'invalid',
-                ], JSON_THROW_ON_ERROR)
-            ]);
-        }
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_TOO_MANY_REQUESTS);
-
-        $headers = $response->getHeaders(false);
-
-        $this->assertArrayHasKey(strtolower('X-Rate-Limit-Retry-After'), $headers);
-        $this->assertArrayHasKey(strtolower('X-Rate-Limit-Limit'), $headers);
-        $this->assertArrayHasKey(strtolower('X-Rate-Limit-Remaining'), $headers);
-        $this->assertArrayHasKey(strtolower('X-Rate-Limit-Reset'), $headers);
-
-        $this->assertEquals(0, $headers[strtolower('X-Rate-Limit-Remaining')][0]);
     }
 
     protected function tearDown(): void

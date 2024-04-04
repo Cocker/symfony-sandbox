@@ -11,6 +11,8 @@ use App\Api\User\Repository\V1\UserRepository;
 use App\Entity\AbstractEntity;
 use App\Entity\Trait\Timestampable;
 use Carbon\CarbonImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -23,6 +25,7 @@ use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\PasswordStrength;
 use Symfony\Component\Validator\Constraints\Type;
+use \App\Api\User\Entity\UserLogin;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -83,10 +86,14 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
     #[PasswordStrength(minScore: PasswordStrength::STRENGTH_MEDIUM)]
     private ?string $plainPassword = null;
 
+    #[ORM\OneToMany(targetEntity: UserLogin::class, mappedBy: 'causer', orphanRemoval: true)]
+    private Collection $logins;
+
     public function __construct()
     {
         $this->status = UserStatus::UNVERIFIED;
         $this->roles = [UserRole::USER->value];
+        $this->logins = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -198,6 +205,7 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
         $this->emailVerifiedAt = $emailVerifiedAt;
     }
 
+
     public function isEmailVerified(): bool
     {
         return $this->emailVerifiedAt !== null;
@@ -206,5 +214,35 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
     public function eraseCredentials(): void
     {
         $this->plainPassword = null;
+    }
+
+    /**
+     * @return Collection<int, UserLogin>
+     */
+    public function getLogins(): Collection
+    {
+        return $this->logins;
+    }
+
+    public function addLogin(UserLogin $login): static
+    {
+        if (!$this->logins->contains($login)) {
+            $this->logins->add($login);
+            $login->setCauser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLogin(UserLogin $login): static
+    {
+        if ($this->logins->removeElement($login)) {
+            // set the owning side to null (unless already changed)
+            if ($login->getCauser() === $this) {
+                $login->setCauser(null);
+            }
+        }
+
+        return $this;
     }
 }

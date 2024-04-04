@@ -43,7 +43,7 @@ final class UserFactory extends ModelFactory
     {
         return $this->addState([
             'status' => UserStatus::UNVERIFIED,
-            'email_verified_at' => null,
+            'emailVerifiedAt' => null,
         ]);
     }
 
@@ -52,7 +52,7 @@ final class UserFactory extends ModelFactory
         $minutes = random_int(1, 24 * 60);
 
         return $this->addState([
-            'created_at' => (new \DateTimeImmutable(-$days . ' days'))
+            'createdAt' => (new \DateTimeImmutable(-$days . ' days'))
                 ->modify(-$minutes . ' minutes'),
         ]);
     }
@@ -66,7 +66,7 @@ final class UserFactory extends ModelFactory
             'plainPassword' => self::faker()->password(minLength:  8),
             'roles' => [UserRole::USER->value],
             'status' => UserStatus::ACTIVE,
-            'email_verified_at' => CarbonImmutable::now()->subDay(),
+            'emailVerifiedAt' => CarbonImmutable::now()->subDay(),
         ];
     }
 
