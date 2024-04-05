@@ -52,7 +52,7 @@ class SendEmailVerificationEmailControllerTest extends ApiTestCase
             'body' => json_encode(['email' => $user->getEmail()], JSON_THROW_ON_ERROR)
         ]);
 
-        $this->assertFalse($this->verificationPool->getItem(VerificationType::VERIFY_EMAIL->fullKey($user->object()))->isHit());
+        $this->assertFalse($this->verificationPool->getItem(VerificationType::EMAIL_VERIFY->fullKey($user->object()))->isHit());
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
         $this->assertQueuedEmailCount(0);
     }
@@ -69,7 +69,7 @@ class SendEmailVerificationEmailControllerTest extends ApiTestCase
         $this->assertQueuedEmailCount(1);
 
         /** @var CacheItemInterface $cacheItem */
-        $cacheItem = $this->verificationPool->getItem(VerificationType::VERIFY_EMAIL->fullKey($user->object()));
+        $cacheItem = $this->verificationPool->getItem(VerificationType::EMAIL_VERIFY->fullKey($user->object()));
         $this->assertEquals(StaticVerificationCodeGenerator::CODE, $cacheItem->get());
     }
 
@@ -85,7 +85,7 @@ class SendEmailVerificationEmailControllerTest extends ApiTestCase
 
         static::getContainer()->set(VerificationCodeGeneratorInterface::class, $verificatonCodeGeneratorMock);
 
-        $cacheItem = $this->verificationPool->getItem(VerificationType::VERIFY_EMAIL->fullKey($user->object()));
+        $cacheItem = $this->verificationPool->getItem(VerificationType::EMAIL_VERIFY->fullKey($user->object()));
         $cacheItem->set($oldCode = '222222');
         $this->verificationPool->save($cacheItem);
 
@@ -97,7 +97,7 @@ class SendEmailVerificationEmailControllerTest extends ApiTestCase
 
         $this->assertEquals(
             $newCode,
-            $this->verificationPool->getItem(VerificationType::VERIFY_EMAIL->fullKey($user->object()))->get()
+            $this->verificationPool->getItem(VerificationType::EMAIL_VERIFY->fullKey($user->object()))->get()
         );
 
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);

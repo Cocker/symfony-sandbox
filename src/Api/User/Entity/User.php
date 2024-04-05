@@ -25,7 +25,6 @@ use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\PasswordStrength;
 use Symfony\Component\Validator\Constraints\Type;
-use \App\Api\User\Entity\UserLogin;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -53,6 +52,8 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
     #[Length(max: self::MAX_EMAIL_LENGTH)]
     #[Groups(['v1_personal'])]
     private string $email;
+
+    private ?string $newEmail = null;
 
     #[ORM\Column(name: 'first_name', type: Types::STRING)]
     #[NotBlank]
@@ -244,5 +245,15 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
         }
 
         return $this;
+    }
+
+    public function getNewEmail(): ?string
+    {
+        return $this->newEmail;
+    }
+
+    public function setNewEmail(?string $newEmail = null): void
+    {
+        $this->newEmail = $newEmail;
     }
 }

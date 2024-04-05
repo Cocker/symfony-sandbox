@@ -14,7 +14,7 @@ readonly class SignInDTO extends AbstractDTO
 
     public static function fromRequest(Request $request): static
     {
-        $payload = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $payload = static::requestContentToArray($request);
 
         $dto = new static();
 

@@ -26,7 +26,7 @@ class UserOrchestrator
     {
         $user = $this->userService->create($createUserDTO);
 
-        $code = $this->verificationGeneratorService->new(VerificationType::VERIFY_EMAIL, $user);
+        $code = $this->verificationGeneratorService->new(VerificationType::EMAIL_VERIFY, $user);
 
         $this->emailVerificationService->sendVerificationCode($user, $code);
 

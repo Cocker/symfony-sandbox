@@ -7,6 +7,7 @@ namespace App\Api\User\Service\V1;
 use ApiPlatform\Validator\ValidatorInterface;
 use App\Api\User\Entity\Enum\UserStatus;
 use App\Api\User\Entity\User;
+use App\Api\User\Service\Shared\VerificationCodeGenerator\Enum\VerificationType;
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Mailer\MailerInterface;
@@ -24,10 +25,17 @@ class EmailVerificationService
 
     public function sendVerificationCode(User $user, string $code): void
     {
+        $ttlSeconds = VerificationType::EMAIL_VERIFY->ttlSeconds();
+
         $email = (new Email())
             ->to($user->getEmail())
             ->subject('Verify your email')
-            ->text("Your verification code: $code")
+            ->text(
+                <<<BODY
+                Your verification code: $code
+                Active for: $ttlSeconds seconds
+                BODY
+            )
         ;
 
         $this->mailer->send($email);

@@ -14,7 +14,7 @@ readonly class UpdateUserDTO extends AbstractDTO
     {
         $dto = new static();
 
-        $payload = json_decode($request->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $payload = static::requestContentToArray($request);
 
         $dto->firstName = $payload['firstName'] ?? '';
         $dto->lastName = $payload['lastName'] ?? '';

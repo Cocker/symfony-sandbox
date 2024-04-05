@@ -8,6 +8,7 @@ use App\Api\User\DTO\V1\SignInDTO;
 use App\Api\User\DTO\V1\UpdateUserDTO;
 use App\Api\User\Entity\User;
 use App\Api\User\Event\UserLoginEvent;
+use App\Api\User\Exception\EmailNotVerifiedException;
 use App\Api\User\Exception\InvalidCredentialsException;
 use App\Api\User\Exception\UnauthenticatedException;
 use App\Api\User\Service\V1\AuthService;
@@ -35,6 +36,10 @@ class AuthOrchestrator
         $user = $this->userService->findOneBy(['email' => $signInDTO->email]);
         if ($user === null) {
             throw InvalidCredentialsException::new();
+        }
+
+        if (! $user->isEmailVerified()) {
+            throw new EmailNotVerifiedException();
         }
 
         $token = $this->authService->login($user, $signInDTO);

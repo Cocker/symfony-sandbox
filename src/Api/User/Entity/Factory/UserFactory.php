@@ -39,6 +39,11 @@ final class UserFactory extends ModelFactory
         return $this->addState(['plainPassword' => $plainPassword]);
     }
 
+    public function withEmail(string $email): UserFactory
+    {
+        return $this->addState(['email' => $email]);
+    }
+
     public function unverified(): UserFactory
     {
         return $this->addState([

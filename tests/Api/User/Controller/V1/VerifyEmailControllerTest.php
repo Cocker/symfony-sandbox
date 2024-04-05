@@ -77,7 +77,7 @@ class VerifyEmailControllerTest extends ApiTestCase
             ->unverified()
             ->create();
 
-        $cacheItem = $this->verificationPool->getItem(VerificationType::VERIFY_EMAIL->fullKey($userProxy->object()));
+        $cacheItem = $this->verificationPool->getItem(VerificationType::EMAIL_VERIFY->fullKey($userProxy->object()));
         $cacheItem->set($code = StaticVerificationCodeGenerator::CODE);
         $this->verificationPool->save($cacheItem);
 

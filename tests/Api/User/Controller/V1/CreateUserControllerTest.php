@@ -84,7 +84,7 @@ class CreateUserControllerTest extends ApiTestCase
         $this->assertEquals('Verify your email', $email->getSubject());
         $this->assertStringContainsString(StaticVerificationCodeGenerator::CODE, $email->getTextBody());
 
-        $codeCacheItem = $verificationPool->getItem(VerificationType::VERIFY_EMAIL->fullKey($createdUser));
+        $codeCacheItem = $verificationPool->getItem(VerificationType::EMAIL_VERIFY->fullKey($createdUser));
         $this->assertTrue($codeCacheItem->isHit());
         $this->assertEquals(StaticVerificationCodeGenerator::CODE, $codeCacheItem->get());
     }

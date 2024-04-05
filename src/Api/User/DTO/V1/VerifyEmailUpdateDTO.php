@@ -11,25 +11,25 @@ use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Type;
 
-readonly class VerifyEmailDTO extends AbstractDTO
+readonly class VerifyEmailUpdateDTO extends AbstractDTO
 {
-    #[NotBlank]
-    #[Type('string')]
-    #[Email]
-    public string $email;
-
     #[NotBlank]
     #[Length(exactly: 6)]
     #[Type('string')]
     public string $code;
 
+    #[NotBlank]
+    #[Type('string')]
+    #[Email]
+    public string $newEmail;
+
     public static function fromRequest(Request $request): static
     {
-        $dto = new static();
-
         $payload = static::requestContentToArray($request);
 
-        $dto->email = $payload['email'] ?? '';
+        $dto = new static();
+
+        $dto->newEmail = $payload['newEmail'] ?? '';
         $dto->code = $payload['code'] ?? '';
 
         return $dto;

@@ -8,17 +8,26 @@ use App\Api\User\Entity\User;
 
 enum VerificationType: string
 {
-    case VERIFY_EMAIL = 'verify_email';
+    case EMAIL_VERIFY = 'email_verify';
+    case EMAIL_UPDATE = 'email_update';
 
     public function fullKey(User $user): string
     {
-        return $this->value . '_' . $user->getId();
+        $fullKey = $this->value . '_' . $user->getId();
+
+        if ($this === self::EMAIL_UPDATE) {
+            // make sure key does not have special characters
+            return "{$fullKey}_" . md5($user->getNewEmail());
+        }
+
+        return $fullKey;
     }
 
     public function ttlSeconds(): int
     {
         return match ($this) {
-            self::VERIFY_EMAIL => 24 * 60 * 60,
+            self::EMAIL_VERIFY => 24 * 60 * 60,
+            self::EMAIL_UPDATE => 60 * 60,
         };
     }
 }

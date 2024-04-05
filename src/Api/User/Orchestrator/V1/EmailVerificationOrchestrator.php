@@ -34,13 +34,13 @@ class EmailVerificationOrchestrator
             throw new InvalidVerificationCodeException();
         }
 
-        $realCode = $this->verificationService->getCode(VerificationType::VERIFY_EMAIL, $user);
+        $realCode = $this->verificationService->getCode(VerificationType::EMAIL_VERIFY, $user);
         if ($realCode === null || $realCode !== $verifyEmailDTO->code) {
             throw new InvalidVerificationCodeException();
         }
 
         $this->emailService->verify($user, $verifyEmailDTO->code);
-        $this->verificationService->delete(VerificationType::VERIFY_EMAIL, $user);
+        $this->verificationService->delete(VerificationType::EMAIL_VERIFY, $user);
     }
 
     public function sendVerificationEmail(SendEmailVerificationEmailDTO $sendEmailVerificationEmailDTO): void
@@ -53,7 +53,7 @@ class EmailVerificationOrchestrator
             return;
         }
 
-        $code = $this->verificationService->new(VerificationType::VERIFY_EMAIL, $user);
+        $code = $this->verificationService->new(VerificationType::EMAIL_VERIFY, $user);
 
         $this->emailService->sendVerificationCode($user, $code);
     }

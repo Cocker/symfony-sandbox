@@ -32,6 +32,24 @@ class LoginControllerTest extends ApiTestCase
         $this->client = static::createClient();
     }
 
+    public function test_it_throws_error_if_email_not_verified(): void
+    {
+        $userProxy = UserFactory::new()
+            ->unverified()
+            ->withPassword($plainPassword = '!@#Qwerty123$%^')
+            ->create();
+
+        $this->client->request('POST','/api/v1/auth/login', [
+            'body' => json_encode([
+                'email' => $userProxy->getEmail(),
+                'password' => $plainPassword,
+            ], JSON_THROW_ON_ERROR),
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
+        $this->assertJsonContains(['hydra:description' => 'Email not verified.']);
+    }
+
     public function test_user_can_login(): void
     {
         CarbonImmutable::setTestNow($now = CarbonImmutable::now()->milliseconds(0));
