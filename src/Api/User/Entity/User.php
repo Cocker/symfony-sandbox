@@ -237,11 +237,9 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
 
     public function removeLogin(UserLogin $login): static
     {
-        if ($this->logins->removeElement($login)) {
-            // set the owning side to null (unless already changed)
-            if ($login->getCauser() === $this) {
-                $login->setCauser(null);
-            }
+        // set the owning side to null (unless already changed)
+        if ($this->logins->removeElement($login) && $login->getCauser() === $this) {
+            $login->setCauser(null);
         }
 
         return $this;
