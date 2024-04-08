@@ -34,8 +34,7 @@ RUN set -eux; \
 		intl \
 		opcache \
 		zip \
-	; \
-	echo 'alias s="php /app/bin/console"' >> ~/.bashrc;
+	;
 
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
 ENV COMPOSER_ALLOW_SUPERUSER=1
@@ -52,6 +51,9 @@ RUN pecl install amqp && docker-php-ext-enable amqp
 COPY --link frankenphp/conf.d/app.ini $PHP_INI_DIR/conf.d/
 COPY --link --chmod=755 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 COPY --link frankenphp/Caddyfile /etc/caddy/Caddyfile
+
+# add symfony console alias
+RUN echo 'alias s="php /app/bin/console"' >> ~/.bashrc;
 
 ENTRYPOINT ["docker-entrypoint"]
 
