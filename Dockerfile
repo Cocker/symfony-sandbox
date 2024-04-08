@@ -24,7 +24,11 @@ RUN apk add --no-cache \
         build-base \
         rabbitmq-c \
         rabbitmq-c-dev \
+        bash \
 	;
+
+# add alias for symfony console
+RUN echo 'alias s="php /app/bin/console"' >> ~/.bashrc
 
 RUN set -eux; \
 	install-php-extensions \
