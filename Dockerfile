@@ -27,9 +27,6 @@ RUN apk add --no-cache \
         bash \
 	;
 
-# add alias for symfony console
-RUN echo 'alias s="php /app/bin/console"' >> ~/.bashrc
-
 RUN set -eux; \
 	install-php-extensions \
 		@composer \
@@ -37,7 +34,8 @@ RUN set -eux; \
 		intl \
 		opcache \
 		zip \
-	;
+	; \
+	echo 'alias s="php /app/bin/console"' >> ~/.bashrc;
 
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
 ENV COMPOSER_ALLOW_SUPERUSER=1
