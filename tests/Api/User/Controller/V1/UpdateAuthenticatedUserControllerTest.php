@@ -28,7 +28,7 @@ class UpdateAuthenticatedUserControllerTest extends ApiTestCase
         $this->client->request(
             'PUT',
             '/api/v1/auth/me',
-            ['body' => json_encode(['firstName' => 'Any first name', 'lastName' => 'Any last name'], JSON_THROW_ON_ERROR)]
+            ['json' => ['firstName' => 'Any first name', 'lastName' => 'Any last name']]
         );
 
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
@@ -44,7 +44,10 @@ class UpdateAuthenticatedUserControllerTest extends ApiTestCase
             'PUT',
             '/api/v1/auth/me',
             [
-                'body' => json_encode(['firstName' => 'ab', 'lastName' => str_repeat('a', 256)], JSON_THROW_ON_ERROR),
+                'json' => [
+                    'firstName' => 'ab',
+                    'lastName' => str_repeat('a', 256),
+                ],
                 'headers' => [
                     'Authorization' => "Bearer $token",
                     'Content-Type' => 'application/json',
@@ -64,10 +67,10 @@ class UpdateAuthenticatedUserControllerTest extends ApiTestCase
             'PUT',
             '/api/v1/auth/me',
             [
-                'body' => json_encode([
+                'json' => [
                     'firstName' => $firstName = 'John',
                     'lastName' => $lastName = 'Smith',
-                ], JSON_THROW_ON_ERROR),
+                ],
                 'headers' => ['Authorization' => "Bearer $token"],
             ]
         );

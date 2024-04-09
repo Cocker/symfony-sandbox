@@ -65,10 +65,11 @@ class UpdateEmailOrchestrator
 
         $user->setNewEmail($verifyEmailUpdateDTO->newEmail);
 
-        $realCode = $this->verificationService->getCode(VerificationType::EMAIL_UPDATE, $user);
-        if ($realCode === null || $realCode !== $verifyEmailUpdateDTO->code) {
-            throw new InvalidVerificationCodeException();
-        }
+        $this->verificationService->ensureIsValid(
+            VerificationType::EMAIL_UPDATE,
+            $user,
+            $verifyEmailUpdateDTO->code,
+        );
 
         $user = $this->emailUpdateService->verify($user, $verifyEmailUpdateDTO);
 

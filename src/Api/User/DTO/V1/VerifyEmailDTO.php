@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Api\User\DTO\V1;
 
+use App\Api\User\Validator\DigitVerificationCode;
 use App\DTO\AbstractDTO;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraints\Email;
@@ -19,8 +20,7 @@ readonly class VerifyEmailDTO extends AbstractDTO
     public string $email;
 
     #[NotBlank]
-    #[Length(exactly: 6)]
-    #[Type('string')]
+    #[DigitVerificationCode]
     public string $code;
 
     public static function fromRequest(Request $request): static

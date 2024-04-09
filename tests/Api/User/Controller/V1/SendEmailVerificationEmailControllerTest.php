@@ -37,7 +37,7 @@ class SendEmailVerificationEmailControllerTest extends ApiTestCase
     public function test_it_doesnt_send_email_if_user_doesnt_exist(): void
     {
         $this->client->request('POST', '/api/v1/email/send-verification', [
-            'body' => json_encode(['email' => 'some@mail.com'], JSON_THROW_ON_ERROR)
+            'json' => ['email' => 'some@mail.com'],
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
@@ -49,7 +49,7 @@ class SendEmailVerificationEmailControllerTest extends ApiTestCase
         $user = UserFactory::new()->create();
 
         $this->client->request('POST', '/api/v1/email/send-verification',  [
-            'body' => json_encode(['email' => $user->getEmail()], JSON_THROW_ON_ERROR)
+            'json' => ['email' => $user->getEmail()],
         ]);
 
         $this->assertFalse($this->verificationPool->getItem(VerificationType::EMAIL_VERIFY->fullKey($user->object()))->isHit());
@@ -62,7 +62,7 @@ class SendEmailVerificationEmailControllerTest extends ApiTestCase
         $user = UserFactory::new()->unverified()->create();
 
         $this->client->request('POST', '/api/v1/email/send-verification',  [
-            'body' => json_encode(['email' => $user->getEmail()], JSON_THROW_ON_ERROR)
+            'json' => ['email' => $user->getEmail()],
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
@@ -90,9 +90,9 @@ class SendEmailVerificationEmailControllerTest extends ApiTestCase
         $this->verificationPool->save($cacheItem);
 
         $this->client->request('POST', '/api/v1/email/send-verification',  [
-            'body' => json_encode([
+            'json' => [
                 'email' => $user->getEmail(),
-            ], JSON_THROW_ON_ERROR)
+            ],
         ]);
 
         $this->assertEquals(

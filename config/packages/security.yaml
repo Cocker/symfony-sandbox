@@ -42,6 +42,8 @@ security:
         - { path: ^/api/v1/users, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/email/verify, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1/email/send-verification, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/password/request-reset, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1/password/reset, roles: PUBLIC_ACCESS }
         - { path: ^/api/v1, roles: IS_AUTHENTICATED_FULLY }
 
 

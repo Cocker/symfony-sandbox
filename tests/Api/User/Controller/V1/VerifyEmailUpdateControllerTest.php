@@ -36,9 +36,7 @@ class VerifyEmailUpdateControllerTest extends ApiTestCase
     public function test_it_cannot_be_accessed_if_not_authenticated(): void
     {
         $this->client->request('POST', '/api/v1/email/verify-update', [
-            'body' => json_encode([
-                'code' => '123456',
-            ], JSON_THROW_ON_ERROR)
+            'json' => ['code' => '123456'],
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
@@ -50,9 +48,7 @@ class VerifyEmailUpdateControllerTest extends ApiTestCase
         $token = $this->JWTTokenManager->create($user->object());
 
         $this->client->request('POST', '/api/v1/email/verify-update', [
-            'body' => json_encode([
-                'code' => 'invalid',
-            ], JSON_THROW_ON_ERROR),
+            'json' => ['code' => 'invalid'],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
 
@@ -66,9 +62,7 @@ class VerifyEmailUpdateControllerTest extends ApiTestCase
         $token = $this->JWTTokenManager->create($user->object());
 
         $this->client->request('POST', '/api/v1/email/verify-update', [
-            'body' => json_encode([
-                'code' => '123456',
-            ], JSON_THROW_ON_ERROR),
+            'json' => ['code' => '123456'],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
 
@@ -88,10 +82,10 @@ class VerifyEmailUpdateControllerTest extends ApiTestCase
         $code = $verificationService->new(VerificationType::EMAIL_UPDATE, $userObject);
 
         $this->client->request('POST', '/api/v1/email/verify-update', [
-            'body' => json_encode([
+            'json' => [
                 'newEmail' => $newEmail,
                 'code' => $code,
-            ], JSON_THROW_ON_ERROR),
+            ],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
 

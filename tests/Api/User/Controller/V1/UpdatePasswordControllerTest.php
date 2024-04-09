@@ -38,10 +38,10 @@ class UpdatePasswordControllerTest extends ApiTestCase
         $token = $this->JWTTokenManager->create($user->object());
 
         $this->client->request('PUT', '/api/v1/password', [
-            'body' => json_encode([
+            'json' => [
                 'password' => 'invalid-password',
                 'newPassword' => '!#123Qwerty123$%',
-            ], JSON_THROW_ON_ERROR),
+            ],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
 
@@ -57,10 +57,10 @@ class UpdatePasswordControllerTest extends ApiTestCase
         $token = $this->JWTTokenManager->create($user->object());
 
         $this->client->request('PUT', '/api/v1/password', [
-            'body' => json_encode([
+            'json' => [
                 'password' => $password,
                 'newPassword' => 'weakpassword',
-            ], JSON_THROW_ON_ERROR),
+            ],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
 
@@ -78,10 +78,10 @@ class UpdatePasswordControllerTest extends ApiTestCase
         $token = $this->JWTTokenManager->create($user->object());
 
         $this->client->request('PUT', '/api/v1/password', [
-            'body' => json_encode([
+            'json' => [
                 'password' => $oldPassword,
                 'newPassword' => $newPassword = '!#123Qwerty123$%',
-            ], JSON_THROW_ON_ERROR),
+            ],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
 

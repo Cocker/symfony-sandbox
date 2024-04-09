@@ -10,6 +10,7 @@ enum VerificationType: string
 {
     case EMAIL_VERIFY = 'email_verify';
     case EMAIL_UPDATE = 'email_update';
+    case PASSWORD_RESET = 'password_reset';
 
     public function fullKey(User $user): string
     {
@@ -27,7 +28,7 @@ enum VerificationType: string
     {
         return match ($this) {
             self::EMAIL_VERIFY => 24 * 60 * 60,
-            self::EMAIL_UPDATE => 60 * 60,
+            self::EMAIL_UPDATE, self::PASSWORD_RESET => 60 * 60,
         };
     }
 }

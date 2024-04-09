@@ -45,9 +45,7 @@ class RequestEmailUpdateControllerTest extends ApiTestCase
         $token = $this->JWTTokenManager->create($user->object());
 
         $this->client->request('POST', '/api/v1/email/request-update', [
-            'body' => json_encode([
-                'email' => 'inva@lid@mail.com',
-            ], JSON_THROW_ON_ERROR),
+            'json' => ['email' => 'inva@lid@mail.com'],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
 
@@ -61,9 +59,7 @@ class RequestEmailUpdateControllerTest extends ApiTestCase
         $token = $this->JWTTokenManager->create($user->object());
 
         $this->client->request('POST', '/api/v1/email/request-update', [
-            'body' => json_encode([
-                'email' => $existingEmail,
-            ], JSON_THROW_ON_ERROR),
+            'json' => ['email' => $existingEmail],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
 
@@ -78,9 +74,7 @@ class RequestEmailUpdateControllerTest extends ApiTestCase
         $token = $this->JWTTokenManager->create($user->object());
 
         $this->client->request('POST', '/api/v1/email/request-update', [
-            'body' => json_encode([
-                'email' => $user->getEmail(),
-            ], JSON_THROW_ON_ERROR),
+            'json' => ['email' => $user->getEmail()],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
 
@@ -95,9 +89,7 @@ class RequestEmailUpdateControllerTest extends ApiTestCase
         $userObject->setNewEmail($newEmail = 'new@mail.com',);
 
         $this->client->request('POST', '/api/v1/email/request-update', [
-            'body' => json_encode([
-                'email' => $newEmail,
-            ], JSON_THROW_ON_ERROR),
+            'json' => ['email' => $newEmail],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
 

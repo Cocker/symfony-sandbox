@@ -40,10 +40,10 @@ class LoginControllerTest extends ApiTestCase
             ->create();
 
         $this->client->request('POST','/api/v1/auth/login', [
-            'body' => json_encode([
+            'json' => [
                 'email' => $userProxy->getEmail(),
                 'password' => $plainPassword,
-            ], JSON_THROW_ON_ERROR),
+            ],
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
@@ -59,10 +59,10 @@ class LoginControllerTest extends ApiTestCase
             ->create();
 
         $response = $this->client->request('POST','/api/v1/auth/login', [
-            'body' => json_encode([
+            'json' => [
                 'email' => $userProxy->getEmail(),
                 'password' => $plainPassword,
-            ], JSON_THROW_ON_ERROR),
+            ],
         ]);
 
         /** @var TraceableEventDispatcher $traceableEventDispatcher */
@@ -98,10 +98,10 @@ class LoginControllerTest extends ApiTestCase
             ->create();
 
         $this->client->request('POST','/api/v1/auth/login', [
-            'body' => json_encode([
+            'json' => [
                 'email' => 'invalid',
                 'password' => 'invalid',
-            ], JSON_THROW_ON_ERROR)
+            ],
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);

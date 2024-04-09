@@ -34,12 +34,13 @@ class EmailVerificationOrchestrator
             throw new InvalidVerificationCodeException();
         }
 
-        $realCode = $this->verificationService->getCode(VerificationType::EMAIL_VERIFY, $user);
-        if ($realCode === null || $realCode !== $verifyEmailDTO->code) {
-            throw new InvalidVerificationCodeException();
-        }
+        $this->verificationService->ensureIsValid(
+            VerificationType::EMAIL_VERIFY,
+            $user,
+            $verifyEmailDTO->code
+        );
 
-        $this->emailService->verify($user, $verifyEmailDTO->code);
+        $this->emailService->verify($user);
         $this->verificationService->delete(VerificationType::EMAIL_VERIFY, $user);
     }
 

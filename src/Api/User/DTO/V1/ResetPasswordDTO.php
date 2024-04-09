@@ -11,15 +11,18 @@ use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Type;
 
-readonly class VerifyEmailUpdateDTO extends AbstractDTO
+readonly class ResetPasswordDTO extends AbstractDTO
 {
-    #[DigitVerificationCode]
-    public string $code;
-
     #[NotBlank]
     #[Type('string')]
     #[Email]
-    public string $newEmail;
+    public string $email;
+
+    public string $password;
+
+    #[NotBlank]
+    #[DigitVerificationCode]
+    public string $code;
 
     public static function fromRequest(Request $request): static
     {
@@ -27,7 +30,8 @@ readonly class VerifyEmailUpdateDTO extends AbstractDTO
 
         $dto = new static();
 
-        $dto->newEmail = $payload['newEmail'] ?? '';
+        $dto->email = $payload['email'] ?? '';
+        $dto->password = $payload['password'] ?? '';
         $dto->code = $payload['code'] ?? '';
 
         return $dto;

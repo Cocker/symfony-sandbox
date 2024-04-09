@@ -36,10 +36,10 @@ class VerifyEmailControllerTest extends ApiTestCase
     public function it_throws_error_if_validation_fails(): void
     {
         $response = $this->client->request('POST', '/api/v1/email/verify',  [
-            'body' => json_encode([
+            'json' => [
                 'email' => 'inva@lid@mail.com',
                 'code' => '',
-            ], JSON_THROW_ON_ERROR)
+            ],
         ]);
 
         $responseArray = $response->toArray(throw: false);
@@ -58,10 +58,10 @@ class VerifyEmailControllerTest extends ApiTestCase
             ->create();
 
         $this->client->request('POST', '/api/v1/email/verify',  [
-            'body' => json_encode([
+            'json' => [
                 'email' => $userProxy->getEmail(),
                 'code' => '222222',
-            ], JSON_THROW_ON_ERROR)
+            ],
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
@@ -82,10 +82,10 @@ class VerifyEmailControllerTest extends ApiTestCase
         $this->verificationPool->save($cacheItem);
 
         $this->client->request('POST', '/api/v1/email/verify',  [
-            'body' => json_encode([
+            'json' => [
                 'email' => $userProxy->getEmail(),
                 'code' => StaticVerificationCodeGenerator::CODE,
-            ], JSON_THROW_ON_ERROR)
+            ],
         ]);
 
         $userProxy->refresh();

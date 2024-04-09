@@ -41,12 +41,12 @@ class CreateUserControllerTest extends ApiTestCase
         $verificationPool = static::getContainer()->get('verification_pool');
 
         $this->client->request('POST','/api/v1/users', [
-            'body' => json_encode([
+            'json' => [
                 'firstName' => $firstName = 'First',
                 'lastName' => $lastName = 'Last',
                 'email' => $email = 'test@mail.com',
                 'password' => $password = '?@Qwerty123#!',
-            ], JSON_THROW_ON_ERROR)
+            ],
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
@@ -92,26 +92,26 @@ class CreateUserControllerTest extends ApiTestCase
     public function test_it_returns_validation_errors(): void
     {
         $response = $this->client->request('POST','/api/v1/users', [
-            'body' => json_encode([
+            'json' => [
                 'firstName' => 'ab', // too short
                 'lastName' => str_repeat('a', 256), // too long
                 'email' => $email = 'te@st@mail', // invalid email
                 'password' => 'qwerty123', // too weak
-            ], JSON_THROW_ON_ERROR)
+            ],
         ]);
 
         $responseArray = $response->toArray(throw: false);
-        $validationErorrs = $responseArray['hydra:description'];
+        $validationErrors = $responseArray['hydra:description'];
 
         $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
 
         $userRepository = $this->entityManager->getRepository(User::class);
         $this->assertNull($userRepository->findOneBy(['email' => $email]));
 
-        $this->assertStringContainsString('firstName', $validationErorrs);
-        $this->assertStringContainsString('lastName', $validationErorrs);
-        $this->assertStringContainsString('email', $validationErorrs);
-        $this->assertStringContainsString('password', $validationErorrs);
+        $this->assertStringContainsString('firstName', $validationErrors);
+        $this->assertStringContainsString('lastName', $validationErrors);
+        $this->assertStringContainsString('email', $validationErrors);
+        $this->assertStringContainsString('password', $validationErrors);
     }
 
     public function test_it_returns_error_if_email_already_exists(): void
@@ -119,12 +119,12 @@ class CreateUserControllerTest extends ApiTestCase
         $existingUserProxy = UserFactory::createOne();
 
         $this->client->request('POST','/api/v1/users', [
-            'body' => json_encode([
+            'json' => [
                 'firstName' => 'Any last name',
                 'lastName' => 'Any last name',
                 'email' => $email = $existingUserProxy->getEmail(),
                 'password' => '?@Qwerty123#!',
-            ], JSON_THROW_ON_ERROR)
+            ],
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
