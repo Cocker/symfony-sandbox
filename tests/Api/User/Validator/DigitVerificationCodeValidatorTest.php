@@ -18,6 +18,20 @@ class DigitVerificationCodeValidatorTest extends ConstraintValidatorTestCase
         return new DigitVerificationCodeValidator();
     }
 
+    public function test_it_does_not_handle_null_values(): void
+    {
+        $this->validator->validate(null, new DigitVerificationCode());
+
+        $this->assertNoViolation();
+    }
+
+    public function test_it_does_not_handle_empty_strings(): void
+    {
+        $this->validator->validate('', new DigitVerificationCode());
+
+        $this->assertNoViolation();
+    }
+
     /**
      * @dataProvider provideInvalidConstraints
      */

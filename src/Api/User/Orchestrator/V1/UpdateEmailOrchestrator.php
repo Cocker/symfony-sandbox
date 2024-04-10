@@ -8,7 +8,6 @@ use ApiPlatform\Validator\ValidatorInterface;
 use App\Api\User\DTO\V1\RequestEmailUpdateDTO;
 use App\Api\User\DTO\V1\VerifyEmailUpdateDTO;
 use App\Api\User\Entity\User;
-use App\Api\User\Exception\InvalidVerificationCodeException;
 use App\Api\User\Exception\SameEmailException;
 use App\Api\User\Exception\UnauthenticatedException;
 use App\Api\User\Service\Shared\VerificationCodeGenerator\Enum\VerificationType;

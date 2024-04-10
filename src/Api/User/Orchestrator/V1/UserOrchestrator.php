@@ -32,9 +32,4 @@ class UserOrchestrator
 
         return $user;
     }
-
-    public function update(UpdateUserDTO $updateUserDTO, User $user): User
-    {
-        return $this->userService->update($user, $updateUserDTO);
-    }
 }
