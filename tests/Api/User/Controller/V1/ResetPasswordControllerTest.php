@@ -10,11 +10,16 @@ use App\Api\User\Entity\Factory\UserFactory;
 use App\Api\User\Service\Shared\VerificationCodeGenerator\Enum\VerificationType;
 use App\Api\User\Service\Shared\VerificationCodeGenerator\VerificationCodeGeneratorInterface;
 use App\Api\User\Service\V1\VerificationService;
+use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
+use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class ResetPasswordControllerTest extends ApiTestCase
 {
+    use ReloadDatabaseTrait;
+
+    private CacheItemPoolInterface $verificationPool;
     private Client $client;
 
     protected function setUp(): void
@@ -22,6 +27,8 @@ class ResetPasswordControllerTest extends ApiTestCase
         parent::setUp();
 
         $this->client = static::createClient();
+        $this->verificationPool = static::getContainer()->get('verification_pool');
+        $this->verificationPool->clear();
     }
 
     public function test_it_throws_error_if_invalid_email(): void
@@ -150,6 +157,13 @@ class ResetPasswordControllerTest extends ApiTestCase
 
         $this->assertTrue($userPasswordHasher->isPasswordValid($userProxy->object(), $newPassword));
         $this->assertNull($verificationService->getCode(VerificationType::PASSWORD_RESET, $userProxy->object()));
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        $this->verificationPool->clear();
     }
 }
 

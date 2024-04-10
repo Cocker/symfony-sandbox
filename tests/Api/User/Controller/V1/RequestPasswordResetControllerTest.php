@@ -10,17 +10,24 @@ use App\Api\User\Entity\Factory\UserFactory;
 use App\Api\User\Service\Shared\VerificationCodeGenerator\Enum\VerificationType;
 use App\Api\User\Service\Shared\VerificationCodeGenerator\StaticVerificationCodeGenerator;
 use App\Api\User\Service\V1\VerificationService;
+use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
+use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\HttpFoundation\Response;
 
 class RequestPasswordResetControllerTest extends ApiTestCase
 {
+    use ReloadDatabaseTrait;
+
     private Client $client;
+    private CacheItemPoolInterface $verificationPool;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->client = static::createClient();
+        $this->verificationPool = static::getContainer()->get('verification_pool');
+        $this->verificationPool->clear();
     }
 
     public function test_it_throws_error_if_invalid_email(): void
@@ -64,5 +71,12 @@ class RequestPasswordResetControllerTest extends ApiTestCase
         $email = $this->getMailerMessage();
         $this->assertEquals('Reset password', $email->getSubject());
         $this->assertStringContainsString(StaticVerificationCodeGenerator::CODE, $email->getTextBody());
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        $this->verificationPool->clear();
     }
 }

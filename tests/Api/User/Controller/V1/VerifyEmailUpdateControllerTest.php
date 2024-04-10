@@ -97,7 +97,7 @@ class VerifyEmailUpdateControllerTest extends ApiTestCase
         $this->assertEquals($newEmail, $user->getEmail());
         $this->assertTrue($now->eq($user->getEmailVerifiedAt()));
 
-        $this->assertFalse($this->verificationPool->getItem(VerificationType::EMAIL_UPDATE->fullKey($user->object()))->isHit());
+        $this->assertNull($verificationService->getCode(VerificationType::EMAIL_UPDATE, $user->object()));
     }
 
     protected function tearDown(): void
