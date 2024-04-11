@@ -20,9 +20,11 @@ trait HasUlid
         return $this->ulid;
     }
 
-    public function setUlid(Ulid $ulid): void
+    public function setUlid(Ulid $ulid): static
     {
         $this->ulid = $ulid;
+
+        return $this;
     }
 
     #[ORM\PrePersist]
