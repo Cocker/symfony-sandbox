@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Uid\Ulid;
 
 class CreateUserControllerTest extends ApiTestCase
 {
@@ -49,8 +50,14 @@ class CreateUserControllerTest extends ApiTestCase
             ],
         ]);
 
+        $userRepository = $this->entityManager->getRepository(User::class);
+
+        /** @var User $createdUser */
+        $createdUser = $userRepository->findOneBy(['email' => $email]);
+
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
         $this->assertJsonEquals([
+            'ulid' => $createdUser->getUlid(),
             'status' => UserStatus::UNVERIFIED->value,
             'firstName' => $firstName,
             'lastName' => $lastName,
@@ -61,11 +68,6 @@ class CreateUserControllerTest extends ApiTestCase
             'emailVerifiedAt' => null,
         ]);
 
-        $userRepository = $this->entityManager->getRepository(User::class);
-
-        /** @var User $createdUser */
-        $createdUser = $userRepository->findOneBy(['email' => $email]);
-
         $this->assertNotNull($createdUser);
         $this->assertSame($firstName, $createdUser->getFirstName());
         $this->assertSame($lastName, $createdUser->getLastName());
@@ -74,6 +76,8 @@ class CreateUserControllerTest extends ApiTestCase
         $this->assertSame([UserRole::USER->value], $createdUser->getRoles());
         $this->assertTrue($now->eq($createdUser->getCreatedAt()));
         $this->assertTrue($now->eq($createdUser->getUpdatedAt()));
+
+        $this->assertTrue(Ulid::isValid((string) $createdUser->getUlid()));
 
         $userPasswordHasher = static::getContainer()->get(UserPasswordHasherInterface::class);
         $this->assertTrue($userPasswordHasher->isPasswordValid($createdUser, $password));

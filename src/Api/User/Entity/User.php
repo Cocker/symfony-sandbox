@@ -9,6 +9,7 @@ use App\Api\User\Entity\Enum\UserRole;
 use App\Api\User\Entity\Enum\UserStatus;
 use App\Api\User\Repository\V1\UserRepository;
 use App\Entity\AbstractEntity;
+use App\Entity\Trait\HasUlid;
 use App\Entity\Trait\Timestampable;
 use Carbon\CarbonImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -33,6 +34,7 @@ use Symfony\Component\Validator\Constraints\Type;
 #[ApiResource]
 class User extends AbstractEntity implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    use HasUlid;
     use Timestampable;
 
     public final const int MAX_EMAIL_LENGTH = 180;

@@ -15,6 +15,7 @@ use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\HeaderBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Uid\Ulid;
 
 class UserLoginEventSubscriberTest extends KernelTestCase
 {
@@ -73,6 +74,7 @@ class UserLoginEventSubscriberTest extends KernelTestCase
         ]);
 
         $this->assertNotNull($userLogin);
+        $this->assertTrue(Ulid::isValid((string) $userLogin->getUlid()));
 
         $this->assertQueuedEmailCount(0);
     }

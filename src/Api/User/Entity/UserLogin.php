@@ -6,6 +6,7 @@ namespace App\Api\User\Entity;
 
 use App\Api\User\Repository\V1\UserLoginRepository;
 use App\Entity\AbstractEntity;
+use App\Entity\Trait\HasUlid;
 use App\Entity\Trait\Timestampable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -14,6 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class UserLogin extends AbstractEntity
 {
+    use HasUlid;
     use Timestampable;
 
     #[ORM\Id]
