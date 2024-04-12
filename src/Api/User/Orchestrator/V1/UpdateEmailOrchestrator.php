@@ -9,31 +9,33 @@ use App\Api\User\DTO\V1\RequestEmailUpdateDTO;
 use App\Api\User\DTO\V1\VerifyEmailUpdateDTO;
 use App\Api\User\Entity\User;
 use App\Api\User\Exception\SameEmailException;
-use App\Api\User\Exception\UnauthenticatedException;
 use App\Api\User\Service\Shared\VerificationCodeGenerator\Enum\VerificationType;
-use App\Api\User\Service\V1\AuthService;
 use App\Api\User\Service\V1\EmailUpdateService;
+use App\Api\User\Service\V1\UserService;
 use App\Api\User\Service\V1\VerificationService;
+use App\Api\User\Voter\UserVoter;
+use App\Exception\EntityNotFoundException;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class UpdateEmailOrchestrator
 {
     public function __construct(
         protected readonly ValidatorInterface $validator,
-        protected readonly AuthService $authService,
         protected readonly VerificationService $verificationService,
         protected readonly EmailUpdateService $emailUpdateService,
+        protected readonly UserService $userService,
+        protected readonly AuthorizationCheckerInterface $authorizationChecker,
     ) {
         //
     }
 
-    public function requestUpdate(RequestEmailUpdateDTO $requestEmailUpdateDTO): void
+    public function requestUpdate(string $ulid, RequestEmailUpdateDTO $requestEmailUpdateDTO): void
     {
         $this->validator->validate($requestEmailUpdateDTO);
 
-        $user = $this->authService->getUser();
-
-        if ($user === null) {
-            return;
+        $user = $this->userService->getByUlid($ulid);
+        if ($user === null || ! $this->authorizationChecker->isGranted(UserVoter::UPDATE, $user)) {
+            throw EntityNotFoundException::new(User::class, $ulid);
         }
 
         if ($requestEmailUpdateDTO->newEmail === $user->getEmail()) {
@@ -52,12 +54,12 @@ class UpdateEmailOrchestrator
         $this->emailUpdateService->sendRequestUpdateEmail($user, $code);
     }
 
-    public function update(VerifyEmailUpdateDTO $verifyEmailUpdateDTO): User
+    public function update(string $userUlid, VerifyEmailUpdateDTO $verifyEmailUpdateDTO): User
     {
-        $user = $this->authService->getUser();
+        $user = $this->userService->getByUlid($userUlid);
 
-        if ($user === null) {
-            throw UnauthenticatedException::new();
+        if ($user === null || ! $this->authorizationChecker->isGranted(UserVoter::UPDATE, $user)) {
+            throw EntityNotFoundException::new(User::class, $userUlid);
         }
 
         $this->validator->validate($verifyEmailUpdateDTO);

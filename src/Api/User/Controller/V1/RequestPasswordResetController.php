@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class RequestPasswordResetController extends AbstractController
 {
-    #[Route(path: '/password/request-reset', name: 'password.request-reset', methods: ['POST'])]
+    #[Route(path: '/password/request-reset', name: 'user.password.request-reset', methods: ['POST'])]
     public function __invoke(Request $request, PasswordOrchestrator $passwordOrchestrator): JsonResponse
     {
         $passwordOrchestrator->requestReset(RequestPasswordResetDTO::fromRequest($request));

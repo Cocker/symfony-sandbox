@@ -11,17 +11,24 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Requirement\Requirement;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 class VerifyEmailUpdateController extends AbstractController
 {
-    #[Route(path: '/email/verify-update', name: 'email.verify-update', methods: ['POST'])]
+    #[Route(
+        path: '/users/{ulid}/email/verify-update',
+        name: 'user.email.verify-update',
+        requirements: ['ulid' => Requirement::ULID],
+        methods: ['POST'],
+    )]
     public function __invoke(
+        string $ulid,
         Request $request,
         UpdateEmailOrchestrator $updateEmailOrchestrator,
         NormalizerInterface $normalizer,
     ): JsonResponse {
-        $user = $updateEmailOrchestrator->update(VerifyEmailUpdateDTO::fromRequest($request));
+        $user = $updateEmailOrchestrator->update($ulid, VerifyEmailUpdateDTO::fromRequest($request));
 
         return $this->json(
             $normalizer->normalize($user, 'json', ['groups' => ['v1_personal', 'v1_metadata', 'timestamps']]),

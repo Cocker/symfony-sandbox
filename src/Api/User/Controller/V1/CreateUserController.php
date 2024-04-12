@@ -15,7 +15,7 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 class CreateUserController extends AbstractController
 {
-    #[Route(path: '/users', name: 'users.create', methods: ['POST'])]
+    #[Route(path: '/users', name: 'user.create', methods: ['POST'])]
     public function __invoke(
         Request $request,
         NormalizerInterface $normalizer,

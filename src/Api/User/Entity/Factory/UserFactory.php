@@ -52,6 +52,20 @@ final class UserFactory extends ModelFactory
         ]);
     }
 
+    public function admin(): UserFactory
+    {
+        return $this
+            ->withEmail('admin@mail.com')
+            ->withPassword('!#$Qwerty123^&*')
+            ->addState([
+                'firstName' => 'Admin',
+                'lastName' => 'Admin',
+                'status' => UserStatus::ACTIVE,
+                'roles' => [UserRole::ADMIN->value],
+            ])
+        ;
+    }
+
     public function createdAtLeastMoreThanDaysAgo(int $days): UserFactory
     {
         $minutes = random_int(1, 24 * 60);

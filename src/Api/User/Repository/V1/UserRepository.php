@@ -8,6 +8,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Bridge\Doctrine\Types\UlidType;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 
@@ -51,5 +52,15 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     public function pruneUsers(): int
     {
         return $this->getPrunableUsersQueryBuilder()->delete()->getQuery()->execute();
+    }
+
+    public function findOneByUlid(string $ulid): ?User
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.ulid = :ulid')
+            ->setParameter('ulid', $ulid, UlidType::NAME)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
     }
 }

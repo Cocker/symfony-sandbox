@@ -14,6 +14,7 @@ use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Uid\Ulid;
 
 class VerifyEmailUpdateControllerTest extends ApiTestCase
 {
@@ -35,7 +36,9 @@ class VerifyEmailUpdateControllerTest extends ApiTestCase
 
     public function test_it_cannot_be_accessed_if_not_authenticated(): void
     {
-        $this->client->request('POST', '/api/v1/email/verify-update', [
+        $randomUlid = new Ulid();
+
+        $this->client->request('POST', "/api/v1/users/{$randomUlid}/email/verify-update", [
             'json' => ['code' => '123456'],
         ]);
 
@@ -44,10 +47,10 @@ class VerifyEmailUpdateControllerTest extends ApiTestCase
 
     public function test_it_throws_error_if_validation_fails(): void
     {
-        $user = UserFactory::new()->create();
-        $token = $this->JWTTokenManager->create($user->object());
+        $userProxy = UserFactory::new()->create();
+        $token = $this->JWTTokenManager->create($userProxy->object());
 
-        $this->client->request('POST', '/api/v1/email/verify-update', [
+        $this->client->request('POST', "/api/v1/users/{$userProxy->getUlid()}/email/verify-update", [
             'json' => ['code' => 'invalid'],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
@@ -58,10 +61,10 @@ class VerifyEmailUpdateControllerTest extends ApiTestCase
 
     public function test_it_throws_error_if_invalid_code(): void
     {
-        $user = UserFactory::new()->create();
-        $token = $this->JWTTokenManager->create($user->object());
+        $userProxy = UserFactory::new()->create();
+        $token = $this->JWTTokenManager->create($userProxy->object());
 
-        $this->client->request('POST', '/api/v1/email/verify-update', [
+        $this->client->request('POST', "/api/v1/users/{$userProxy->getUlid()}/email/verify-update", [
             'json' => ['code' => '123456'],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
@@ -70,18 +73,36 @@ class VerifyEmailUpdateControllerTest extends ApiTestCase
         $this->assertQueuedEmailCount(0);
     }
 
+    public function test_user_can_not_update_the_email_of_other_user(): void
+    {
+        $userProxy = UserFactory::createOne();
+        $anotherUserProxy = UserFactory::createOne();
+
+        $token = $this->JWTTokenManager->create($userProxy->object());
+
+        $this->client->request('POST', "/api/v1/users/{$anotherUserProxy->getUlid()}/email/verify-update", [
+            'json' => [
+                'newEmail' => 'new@mail.com',
+                'code' => '123456',
+            ],
+            'headers' => ['Authorization' => "Bearer $token"],
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+    }
+
     public function test_it_verifies_new_email(): void
     {
         CarbonImmutable::setTestNow($now = CarbonImmutable::now()->milliseconds(0));
 
-        $user = UserFactory::new()->create();
-        $user->setNewEmail($newEmail = 'new@mail.com',);
-        $token = $this->JWTTokenManager->create($userObject = $user->object());
+        $userProxy = UserFactory::new()->create();
+        $userProxy->setNewEmail($newEmail = 'new@mail.com',);
+        $token = $this->JWTTokenManager->create($userObject = $userProxy->object());
 
         $verificationService = static::getContainer()->get(VerificationService::class);
         $code = $verificationService->new(VerificationType::EMAIL_UPDATE, $userObject);
 
-        $this->client->request('POST', '/api/v1/email/verify-update', [
+        $this->client->request('POST', "/api/v1/users/{$userProxy->getUlid()}/email/verify-update", [
             'json' => [
                 'newEmail' => $newEmail,
                 'code' => $code,
@@ -90,14 +111,14 @@ class VerifyEmailUpdateControllerTest extends ApiTestCase
         ]);
 
         $this->assertResponseStatusCodeSame(Response::HTTP_OK);
-        $user->refresh();
+        $userProxy->refresh();
 
-        $this->assertJsonContains(['email' => $user->getEmail()]);
+        $this->assertJsonContains(['email' => $userProxy->getEmail()]);
 
-        $this->assertEquals($newEmail, $user->getEmail());
-        $this->assertTrue($now->eq($user->getEmailVerifiedAt()));
+        $this->assertEquals($newEmail, $userProxy->getEmail());
+        $this->assertTrue($now->eq($userProxy->getEmailVerifiedAt()));
 
-        $this->assertNull($verificationService->getCode(VerificationType::EMAIL_UPDATE, $user->object()));
+        $this->assertNull($verificationService->getCode(VerificationType::EMAIL_UPDATE, $userProxy->object()));
     }
 
     protected function tearDown(): void

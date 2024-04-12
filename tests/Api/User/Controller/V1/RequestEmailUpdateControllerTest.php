@@ -13,6 +13,7 @@ use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Uid\Ulid;
 
 class RequestEmailUpdateControllerTest extends ApiTestCase
 {
@@ -34,7 +35,9 @@ class RequestEmailUpdateControllerTest extends ApiTestCase
 
     public function test_it_cannot_be_accessed_if_not_authenticated(): void
     {
-        $this->client->request('POST', '/api/v1/email/request-update');
+        $randomUlid = new Ulid();
+
+        $this->client->request('POST', "/api/v1/users/$randomUlid/email/request-update");
 
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
     }
@@ -44,7 +47,7 @@ class RequestEmailUpdateControllerTest extends ApiTestCase
         $user = UserFactory::new()->create();
         $token = $this->JWTTokenManager->create($user->object());
 
-        $this->client->request('POST', '/api/v1/email/request-update', [
+        $this->client->request('POST', "/api/v1/users/{$user->getUlid()}/email/request-update", [
             'json' => ['email' => 'inva@lid@mail.com'],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
@@ -58,7 +61,7 @@ class RequestEmailUpdateControllerTest extends ApiTestCase
         UserFactory::new()->withEmail($existingEmail = 'existing@mail.com')->create();
         $token = $this->JWTTokenManager->create($user->object());
 
-        $this->client->request('POST', '/api/v1/email/request-update', [
+        $this->client->request('POST', "/api/v1/users/{$user->getUlid()}/email/request-update", [
             'json' => ['email' => $existingEmail],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
@@ -73,7 +76,7 @@ class RequestEmailUpdateControllerTest extends ApiTestCase
         $user = UserFactory::new()->create();
         $token = $this->JWTTokenManager->create($user->object());
 
-        $this->client->request('POST', '/api/v1/email/request-update', [
+        $this->client->request('POST', "/api/v1/users/{$user->getUlid()}/email/request-update", [
             'json' => ['email' => $user->getEmail()],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
@@ -82,24 +85,44 @@ class RequestEmailUpdateControllerTest extends ApiTestCase
         $this->assertQueuedEmailCount(0);
     }
 
+    public function test_user_can_not_request_email_update_for_other_user(): void
+    {
+        $userProxy = UserFactory::createOne();
+        $anotherUserProxy = UserFactory::createOne();
+        $newEmail = 'new@mail.com';
+
+        $token = $this->JWTTokenManager->create($userProxy->object());
+
+        $this->client->request(
+            'POST',
+            "/api/v1/users/{$anotherUserProxy->getUlid()}/email/request-update",
+            [
+                'json' => ['email' => $newEmail],
+                'headers' => ['Authorization' => "Bearer $token"],
+            ]
+        );
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+    }
+
     public function test_it_sends_email(): void
     {
         $userProxy = UserFactory::new()->create();
         $token = $this->JWTTokenManager->create($userObject = $userProxy->object());
         $userObject->setNewEmail($newEmail = 'new@mail.com',);
 
-        $this->client->request('POST', '/api/v1/email/request-update', [
+        $this->client->request('POST', "/api/v1/users/{$userProxy->getUlid()}/email/request-update", [
             'json' => ['email' => $newEmail],
             'headers' => ['Authorization' => "Bearer $token"],
         ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
+        $this->assertQueuedEmailCount(2);
 
         $this->assertEquals(
             StaticVerificationCodeGenerator::CODE,
             $this->verificationPool->getItem(VerificationType::EMAIL_UPDATE->fullKey($userObject))->get()
         );
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
-        $this->assertQueuedEmailCount(2);
 
         [$verificationEmail, $notificationEmail] = $this->getMailerMessages();
         $this->assertEquals($newEmail, $verificationEmail->getTo()[0]->getAddress());
@@ -108,6 +131,27 @@ class RequestEmailUpdateControllerTest extends ApiTestCase
 
         $this->assertEquals($userObject->getEmail(), $notificationEmail->getTo()[0]->getAddress());
         $this->assertEquals('Security notification', $notificationEmail->getSubject());
+    }
+
+    public function test_admin_can_request_email_update_for_any_user(): void
+    {
+        $userProxy = UserFactory::createOne();
+        $adminUserProxy = UserFactory::new()->admin()->create();
+        $newEmail = 'new@mail.com';
+
+        $token = $this->JWTTokenManager->create($adminUserProxy->object());
+
+        $this->client->request(
+            'POST',
+            "/api/v1/users/{$userProxy->getUlid()}/email/request-update",
+            [
+                'json' => ['email' => $newEmail],
+                'headers' => ['Authorization' => "Bearer $token"]
+            ],
+        );
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
+        $this->assertQueuedEmailCount(2);
     }
 
     protected function tearDown(): void

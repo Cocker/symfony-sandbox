@@ -10,8 +10,9 @@ use App\Api\User\Entity\Factory\UserFactory;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Uid\Ulid;
 
-class UpdateAuthenticatedUserControllerTest extends ApiTestCase
+class UpdateUserControllerTest extends ApiTestCase
 {
     use ReloadDatabaseTrait;
 
@@ -25,9 +26,11 @@ class UpdateAuthenticatedUserControllerTest extends ApiTestCase
 
     public function test_it_returns_401_if_not_authenticated(): void
     {
+        $randomUlid = new Ulid();
+
         $this->client->request(
             'PUT',
-            '/api/v1/auth/me',
+            "/api/v1/users/$randomUlid",
             ['json' => ['firstName' => 'Any first name', 'lastName' => 'Any last name']]
         );
 
@@ -38,11 +41,11 @@ class UpdateAuthenticatedUserControllerTest extends ApiTestCase
     {
         $userProxy = UserFactory::createOne();
 
-        $token = $this->getContainer()->get(JWTTokenManagerInterface::class)->create($userProxy->object());
+        $token = static::getContainer()->get(JWTTokenManagerInterface::class)->create($userProxy->object());
 
         $this->client->request(
             'PUT',
-            '/api/v1/auth/me',
+            "/api/v1/users/{$userProxy->getUlid()}",
             [
                 'json' => [
                     'firstName' => 'ab',
@@ -58,14 +61,61 @@ class UpdateAuthenticatedUserControllerTest extends ApiTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
-    public function test_it_updates_the_user(): void
+    public function test_user_can_not_update_other_user(): void
     {
         $userProxy = UserFactory::createOne();
-        $token = $this->getContainer()->get(JWTTokenManagerInterface::class)->create($userProxy->object());
+        $anotherUserProxy = UserFactory::createOne();
+        $token = static::getContainer()->get(JWTTokenManagerInterface::class)->create($userProxy->object());
 
         $this->client->request(
             'PUT',
-            '/api/v1/auth/me',
+            "/api/v1/users/{$anotherUserProxy->getUlid()}",
+            [
+                'json' => [
+                    'firstName' => 'Any first name',
+                    'lastName' => 'Any last name',
+                ],
+                'headers' => ['Authorization' => "Bearer $token"],
+            ]
+        );
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+    }
+
+    public function test_it_updates_the_user(): void
+    {
+        $userProxy = UserFactory::createOne();
+        $token = static::getContainer()->get(JWTTokenManagerInterface::class)->create($userProxy->object());
+
+        $this->client->request(
+            'PUT',
+            "/api/v1/users/{$userProxy->getUlid()}",
+            [
+                'json' => [
+                    'firstName' => $firstName = 'John',
+                    'lastName' => $lastName = 'Smith',
+                ],
+                'headers' => ['Authorization' => "Bearer $token"],
+            ]
+        );
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        $userProxy->refresh();
+
+        $this->assertSame($firstName, $userProxy->getFirstName());
+        $this->assertSame($lastName, $userProxy->getLastName());
+    }
+
+    public function test_admin_can_update_any_user(): void
+    {
+        $userProxy = UserFactory::createOne();
+        $adminUserProxy = UserFactory::new()->admin()->create();
+        $token = static::getContainer()->get(JWTTokenManagerInterface::class)->create($adminUserProxy->object());
+
+        $this->client->request(
+            'PUT',
+            "/api/v1/users/{$userProxy->getUlid()}",
             [
                 'json' => [
                     'firstName' => $firstName = 'John',

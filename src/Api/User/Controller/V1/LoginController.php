@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class LoginController extends AbstractController
 {
-    #[Route(path: '/auth/login', name: 'auth.login', methods: ['POST'])]
+    #[Route(path: '/auth/login', name: 'user.auth.login', methods: ['POST'])]
     public function __invoke(Request $request, AuthOrchestrator $authOrchestrator): JsonResponse
     {
         return $this->json(['token' => $authOrchestrator->login(SignInDTO::fromRequest($request))]);

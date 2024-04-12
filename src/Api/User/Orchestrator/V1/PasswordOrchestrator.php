@@ -8,31 +8,34 @@ use ApiPlatform\Validator\ValidatorInterface;
 use App\Api\User\DTO\V1\RequestPasswordResetDTO;
 use App\Api\User\DTO\V1\ResetPasswordDTO;
 use App\Api\User\DTO\V1\UpdatePasswordDTO;
+use App\Api\User\Entity\User;
 use App\Api\User\Exception\InvalidVerificationCodeException;
 use App\Api\User\Service\Shared\VerificationCodeGenerator\Enum\VerificationType;
-use App\Api\User\Service\V1\AuthService;
 use App\Api\User\Service\V1\PasswordService;
 use App\Api\User\Service\V1\UserService;
 use App\Api\User\Service\V1\VerificationService;
+use App\Api\User\Voter\UserVoter;
+use App\Exception\EntityNotFoundException;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class PasswordOrchestrator
 {
     public function __construct(
         protected readonly ValidatorInterface $validator,
-        protected readonly AuthService $authService,
         protected readonly UserService $userService,
         protected readonly PasswordService $passwordService,
         protected readonly VerificationService $verificationService,
+        protected readonly AuthorizationCheckerInterface $authorizationChecker,
     ) {
         //
     }
 
-    public function update(UpdatePasswordDTO $updatePasswordDTO): void
+    public function update(string $ulid, UpdatePasswordDTO $updatePasswordDTO): void
     {
-        $user = $this->authService->getUser();
+        $user = $this->userService->getByUlid($ulid);
 
-        if (! $user) {
-            return;
+        if ($user === null || ! $this->authorizationChecker->isGranted(UserVoter::UPDATE, $user)) {
+            throw EntityNotFoundException::new(User::class, $ulid);
         }
 
         $this->validator->validate($updatePasswordDTO);

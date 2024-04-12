@@ -7,8 +7,8 @@ namespace App\Api\User\Service\V1;
 use ApiPlatform\Validator\ValidatorInterface;
 use App\Api\User\DTO\V1\CreateUserDTO;
 use App\Api\User\DTO\V1\UpdateUserDTO;
-use App\Api\User\Entity\Enum\UserStatus;
 use App\Api\User\Entity\User;
+use App\Api\User\Repository\V1\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 class UserService
@@ -16,6 +16,7 @@ class UserService
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly ValidatorInterface $validator,
+        protected readonly UserRepository $userRepository,
     ) {
         //
     }
@@ -56,5 +57,10 @@ class UserService
     public function findOneBy(array $criteria): ?User
     {
         return $this->entityManager->getRepository(User::class)->findOneBy($criteria);
+    }
+
+    public function getByUlid(string $ulid): ?User
+    {
+        return $this->userRepository->findOneByUlid($ulid);
     }
 }

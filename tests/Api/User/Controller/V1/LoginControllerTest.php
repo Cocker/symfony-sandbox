@@ -80,12 +80,12 @@ class LoginControllerTest extends ApiTestCase
         $json = $response->toArray();
         $this->assertArrayHasKey('token', $json);
 
-        $this->client->request('GET','/api/v1/auth/me');
+        $this->client->request('GET',"/api/v1/users/{$userProxy->getUlid()}");
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
 
         $this->client->request(
             'GET',
-            '/api/v1/auth/me',
+            "/api/v1/users/{$userProxy->getUlid()}",
             ['headers' => ['Authorization' => sprintf("Bearer {$json['token']}")]]
         );
         $this->assertResponseIsSuccessful();

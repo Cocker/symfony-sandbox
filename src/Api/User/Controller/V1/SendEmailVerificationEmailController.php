@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class SendEmailVerificationEmailController extends AbstractController
 {
-    #[Route(path: '/email/send-verification', name: 'email.verify.send', methods: ['POST'])]
+    #[Route(path: '/email/send-verification', name: 'user.email.verify.send', methods: ['POST'])]
     public function __invoke(Request $request, EmailVerificationOrchestrator $emailOrchestrator): JsonResponse
     {
         $emailOrchestrator->sendVerificationEmail(SendEmailVerificationEmailDTO::fromRequest($request));

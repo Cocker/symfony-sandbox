@@ -11,13 +11,19 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Requirement\Requirement;
 
 class UpdatePasswordController extends AbstractController
 {
-    #[Route(path: '/password', name: 'password.update', methods: ['PUT'])]
-    public function __invoke(Request $request, PasswordOrchestrator $passwordOrchestrator): JsonResponse
+    #[Route(
+        path: 'users/{ulid}/password',
+        name: 'user.password.update',
+        requirements: ['ulid' => Requirement::ULID],
+        methods: ['PUT'],
+    )]
+    public function __invoke(string $ulid, Request $request, PasswordOrchestrator $passwordOrchestrator): JsonResponse
     {
-        $passwordOrchestrator->update(UpdatePasswordDTO::fromRequest($request));
+        $passwordOrchestrator->update($ulid, UpdatePasswordDTO::fromRequest($request));
 
         return $this->json([], Response::HTTP_NO_CONTENT);
     }

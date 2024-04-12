@@ -10,6 +10,7 @@ use App\Api\User\Entity\Factory\UserFactory;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Uid\Ulid;
 
 class UpdatePasswordControllerTest extends ApiTestCase
 {
@@ -25,7 +26,9 @@ class UpdatePasswordControllerTest extends ApiTestCase
 
     public function test_it_throws_error_if_not_authenticated(): void
     {
-        $this->client->request('PUT', '/api/v1/password');
+        $randomUlid = new Ulid();
+
+        $this->client->request('PUT', "/api/v1/users/{$randomUlid}/password");
 
         $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
     }
@@ -37,7 +40,7 @@ class UpdatePasswordControllerTest extends ApiTestCase
             ->create();
         $token = $this->JWTTokenManager->create($user->object());
 
-        $this->client->request('PUT', '/api/v1/password', [
+        $this->client->request('PUT', "/api/v1/users/{$user->getUlid()}/password", [
             'json' => [
                 'password' => 'invalid-password',
                 'newPassword' => '!#123Qwerty123$%',
@@ -51,12 +54,12 @@ class UpdatePasswordControllerTest extends ApiTestCase
 
     public function test_it_returns_validation_error_if_weak_new_password(): void
     {
-        $user = UserFactory::new()
+        $userProxy = UserFactory::new()
             ->withPassword($password = 'ValidPassword123!')
             ->create();
-        $token = $this->JWTTokenManager->create($user->object());
+        $token = $this->JWTTokenManager->create($userProxy->object());
 
-        $this->client->request('PUT', '/api/v1/password', [
+        $this->client->request('PUT', "/api/v1/users/{$userProxy->getUlid()}/password", [
             'json' => [
                 'password' => $password,
                 'newPassword' => 'weakpassword',
@@ -68,6 +71,24 @@ class UpdatePasswordControllerTest extends ApiTestCase
         $this->assertJsonContains(['hydra:description' => 'plainPassword: The password strength is too low. Please use a stronger password.']);
     }
 
+    public function test_user_can_not_update_the_password_of_other_user(): void
+    {
+        $userProxy = UserFactory::createOne();
+        $anotherUserProxy = UserFactory::createOne();
+
+        $token = $this->JWTTokenManager->create($userProxy->object());
+
+        $this->client->request('PUT', "/api/v1/users/{$anotherUserProxy->getUlid()}/password", [
+            'json' => [
+                'password' => 'somepassword',
+                'newPassword' => 'newpassword',
+            ],
+            'headers' => ['Authorization' => "Bearer $token"],
+        ]);
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+    }
+
     public function test_it_updates_password(): void
     {
         $userPasswordHasher = static::getContainer()->get(UserPasswordHasherInterface::class);
@@ -77,7 +98,7 @@ class UpdatePasswordControllerTest extends ApiTestCase
             ->create();
         $token = $this->JWTTokenManager->create($user->object());
 
-        $this->client->request('PUT', '/api/v1/password', [
+        $this->client->request('PUT', "/api/v1/users/{$user->getUlid()}/password", [
             'json' => [
                 'password' => $oldPassword,
                 'newPassword' => $newPassword = '!#123Qwerty123$%',

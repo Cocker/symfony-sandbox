@@ -11,13 +11,24 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Requirement\Requirement;
 
 class RequestEmailUpdateController extends AbstractController
 {
-    #[Route(path: '/email/request-update', name: 'email.request-update', methods: ['POST'])]
-    public function __invoke(Request $request, UpdateEmailOrchestrator $updateEmailOrchestrator): JsonResponse
+    #[Route(
+        path: 'users/{ulid}/email/request-update',
+        name: 'user.email.request-update',
+        requirements: ['ulid' => Requirement::ULID],
+        methods: ['POST']
+    )]
+    public function __invoke(
+        string $ulid,
+        Request $request,
+        UpdateEmailOrchestrator $updateEmailOrchestrator,
+    ): JsonResponse
     {
-        $updateEmailOrchestrator->requestUpdate(RequestEmailUpdateDTO::fromRequest($request));
+        $dto = RequestEmailUpdateDTO::fromRequest($request);
+        $updateEmailOrchestrator->requestUpdate($ulid, $dto);
 
         return $this->json([], Response::HTTP_NO_CONTENT);
     }
