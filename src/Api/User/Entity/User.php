@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Api\User\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use App\Api\Post\Entity\Post;
 use App\Api\User\Entity\Enum\UserRole;
 use App\Api\User\Entity\Enum\UserStatus;
 use App\Api\User\Repository\V1\UserRepository;
@@ -92,11 +93,15 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
     #[ORM\OneToMany(targetEntity: UserLogin::class, mappedBy: 'causer', orphanRemoval: true)]
     private Collection $logins;
 
+    #[ORM\OneToMany(targetEntity: Post::class, mappedBy: 'author', orphanRemoval: true)]
+    private Collection $posts;
+
     public function __construct()
     {
         $this->status = UserStatus::UNVERIFIED;
         $this->roles = [UserRole::USER->value];
         $this->logins = new ArrayCollection();
+        $this->posts = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -255,5 +260,35 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
     public function setNewEmail(?string $newEmail = null): void
     {
         $this->newEmail = $newEmail;
+    }
+
+    /**
+     * @return Collection<int, Post>
+     */
+    public function getPosts(): Collection
+    {
+        return $this->posts;
+    }
+
+    public function addPost(Post $post): static
+    {
+        if (!$this->posts->contains($post)) {
+            $this->posts->add($post);
+            $post->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removePost(Post $post): static
+    {
+        if ($this->posts->removeElement($post)) {
+            // set the owning side to null (unless already changed)
+            if ($post->getAuthor() === $this) {
+                $post->setAuthor(null);
+            }
+        }
+
+        return $this;
     }
 }

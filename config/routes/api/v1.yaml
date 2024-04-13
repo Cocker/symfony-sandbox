@@ -3,3 +3,8 @@ user:
     path: ../../../src/Api/User/Controller/V1
     namespace: App\Api\User\Controller\V1
   type: attribute
+post:
+  resource:
+    path: ../../../src/Api/Post/Controller/V1
+    namespace: App\Api\Post\Controller\V1
+  type: attribute

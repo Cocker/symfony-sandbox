@@ -11,13 +11,13 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 class UserVoter extends Voter
 {
+    public final const string VIEW = 'view';
+    public final const string UPDATE = 'update';
+
     public function __construct(private readonly Security $security)
     {
         //
     }
-
-    public const VIEW = 'view';
-    public const UPDATE = 'update';
 
     public function supportsAttribute(string $attribute): bool
     {
