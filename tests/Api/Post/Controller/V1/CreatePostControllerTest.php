@@ -174,7 +174,7 @@ class CreatePostControllerTest extends ApiTestCase
         parent::tearDown();
 
         $this->entityManager->close();
-        unset($this->entityManager);
+        unset($this->entityManager, $this->JWTTokenManager, $this->faker, $this->client);
     }
 }
 

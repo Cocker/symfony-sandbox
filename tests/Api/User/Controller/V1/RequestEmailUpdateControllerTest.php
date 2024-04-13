@@ -159,5 +159,7 @@ class RequestEmailUpdateControllerTest extends ApiTestCase
         parent::tearDown();
 
         $this->verificationPool->clear();
+
+        unset($this->client, $this->verificationPool, $this->JWTTokenManager);
     }
 }

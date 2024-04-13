@@ -99,6 +99,6 @@ class VerifyEmailControllerTest extends ApiTestCase
         parent::tearDown();
 
         $this->entityManager->close();
-        unset($this->entityManager);
+        unset($this->entityManager, $this->client, $this->verificationPool);
     }
 }

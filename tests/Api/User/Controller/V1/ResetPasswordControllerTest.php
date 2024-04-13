@@ -164,6 +164,8 @@ class ResetPasswordControllerTest extends ApiTestCase
         parent::tearDown();
 
         $this->verificationPool->clear();
+
+        unset($this->verificationPool, $this->client);
     }
 }
 

@@ -78,5 +78,7 @@ class RequestPasswordResetControllerTest extends ApiTestCase
         parent::tearDown();
 
         $this->verificationPool->clear();
+
+        unset($this->client, $this->verificationPool);
     }
 }

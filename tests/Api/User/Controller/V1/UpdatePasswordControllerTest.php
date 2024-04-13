@@ -112,5 +112,12 @@ class UpdatePasswordControllerTest extends ApiTestCase
 
         $this->assertTrue($userPasswordHasher->isPasswordValid($user->object(), $newPassword));
     }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        unset($this->client, $this->JWTTokenManager);
+    }
 }
 

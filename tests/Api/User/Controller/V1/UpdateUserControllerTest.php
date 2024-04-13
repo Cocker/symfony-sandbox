@@ -132,4 +132,11 @@ class UpdateUserControllerTest extends ApiTestCase
         $this->assertSame($firstName, $userProxy->getFirstName());
         $this->assertSame($lastName, $userProxy->getLastName());
     }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        unset($this->client);
+    }
 }
