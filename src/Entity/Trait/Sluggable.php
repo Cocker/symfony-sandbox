@@ -26,6 +26,11 @@ trait Sluggable
         return $this;
     }
 
+    public function sluggableFields(): array
+    {
+        return [];
+    }
+
     #[ORM\PrePersist]
     public function generateSlug(): void
     {
@@ -38,6 +43,11 @@ trait Sluggable
 
         foreach ($this->sluggableFields() as $field) {
             $fieldGetter = 'get' . ucfirst($field);
+
+            if (! method_exists($this, $fieldGetter)) {
+                throw new \LogicException("Entity missing a getter for field [$field]");
+            }
+
             $stringToSlug .= $this->{$fieldGetter}();
         }
 
@@ -47,23 +57,21 @@ trait Sluggable
     #[ORM\PreUpdate]
     public function updateSlugIfNeeded(PreUpdateEventArgs $eventArgs): void
     {
-        $hasChangedFields = false;
-        foreach ($this->sluggableFields() as $field) {
-            if ($eventArgs->hasChangedField($field)) {
-                $hasChangedFields = true;
-                break;
-            }
-        }
-
-        if (! $hasChangedFields) {
+        if (! $this->hasChangedFields($eventArgs)) {
             return;
         }
 
         $this->generateSlug();
     }
 
-    public function sluggableFields(): array
+    private function hasChangedFields(PreUpdateEventArgs $eventArgs): bool
     {
-        return [];
+        foreach ($this->sluggableFields() as $field) {
+            if ($eventArgs->hasChangedField($field)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
