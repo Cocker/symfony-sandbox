@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Api\Post\Entity\Factory;
 
+use App\Api\Post\Entity\Enum\PostStatus;
 use App\Api\Post\Entity\Post;
 use App\Api\User\Entity\Factory\UserFactory;
+use App\Api\User\Entity\User;
 use Zenstruck\Foundry\ModelFactory;
 use Zenstruck\Foundry\Proxy;
 
@@ -19,6 +21,16 @@ use Zenstruck\Foundry\Proxy;
  */
 final class PostFactory extends ModelFactory
 {
+    public function withAuthor(User $user): PostFactory
+    {
+        return $this->addState(['author' => $user]);
+    }
+
+    public function withStatus(PostStatus $status): PostFactory
+    {
+        return $this->addState(['status' => $status]);
+    }
+
     protected function getDefaults(): array
     {
         return [
