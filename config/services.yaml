@@ -30,3 +30,8 @@ when@test:
         _defaults:
             public: true
         App\Api\User\Service\Shared\VerificationCodeGenerator\VerificationCodeGeneratorInterface: '@App\Api\User\Service\Shared\VerificationCodeGenerator\StaticVerificationCodeGenerator'
+
+        # ensure entities using lifecycle hooks are correctly configured
+        App\Entity\EventSubscriber\LoadClassMetadataEventSubscriber:
+            tags:
+                - { name: doctrine.event_listener, event: loadClassMetadata }
