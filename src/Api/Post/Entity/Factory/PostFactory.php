@@ -35,7 +35,7 @@ final class PostFactory extends ModelFactory
     {
         return [
             'title' => self::faker()->sentence(),
-            'body' => self::faker()->text(),
+            'body' => self::faker()->realTextBetween(300, 1000),
             'author' => UserFactory::new(),
         ];
     }

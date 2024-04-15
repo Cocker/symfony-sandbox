@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Api\Post\Orchestrator\V1;
 
 use App\Api\Post\DTO\V1\CreatePostDTO;
+use App\Api\Post\DTO\V1\UpdatePostDTO;
 use App\Api\Post\Entity\Enum\PostStatus;
 use App\Api\Post\Entity\Post;
 use App\Api\Post\Exception\PostNotDraftException;
@@ -89,5 +90,19 @@ class PostOrchestrator
         }
 
         return $this->postService->reject($post);
+    }
+
+    public function update(string $ulid, UpdatePostDTO $updatePostDTO): Post
+    {
+        $post = $this->postService->getByUlid($ulid);
+        if ($post === null || ! $this->authorizationChecker->isGranted(PostVoter::UPDATE, $post)) {
+            throw EntityNotFoundException::new(Post::class, $ulid);
+        }
+
+        if ($post->getStatus() !== PostStatus::DRAFT) {
+            throw PostNotDraftException::new();
+        }
+
+        return $this->postService->update($post, $updatePostDTO);
     }
 }

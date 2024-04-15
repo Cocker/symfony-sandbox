@@ -6,6 +6,7 @@ namespace App\Api\Post\Service\V1;
 
 use ApiPlatform\Validator\ValidatorInterface;
 use App\Api\Post\DTO\V1\CreatePostDTO;
+use App\Api\Post\DTO\V1\UpdatePostDTO;
 use App\Api\Post\Entity\Enum\PostStatus;
 use App\Api\Post\Entity\Post;
 use App\Api\User\Entity\User;
@@ -47,6 +48,8 @@ class PostService
     {
         $post->setStatus(PostStatus::PENDING);
 
+        $this->validator->validate($post);
+
         $this->entityManager->persist($post);
         $this->entityManager->flush();
 
@@ -58,6 +61,8 @@ class PostService
         $post->setStatus(PostStatus::PUBLISHED);
         $post->setPublishedAt(CarbonImmutable::now());
 
+        $this->validator->validate($post);
+
         $this->entityManager->persist($post);
         $this->entityManager->flush();
 
@@ -67,6 +72,21 @@ class PostService
     public function reject(Post $post): Post
     {
         $post->setStatus(PostStatus::REJECTED);
+
+        $this->validator->validate($post);
+
+        $this->entityManager->persist($post);
+        $this->entityManager->flush();
+
+        return $post;
+    }
+
+    public function update(Post $post, UpdatePostDTO $updatePostDTO): Post
+    {
+        $post->setTitle($updatePostDTO->title);
+        $post->setBody($updatePostDTO->body);
+
+        $this->validator->validate($post);
 
         $this->entityManager->persist($post);
         $this->entityManager->flush();
