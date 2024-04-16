@@ -41,11 +41,11 @@ class UserLoginEventSubscriberTest extends KernelTestCase
 
         $requestMock = $this->createMock(Request::class);
         $requestMock->expects($this->once())
-            ->method('getContent')
-            ->willReturn(json_encode([
+            ->method('toArray')
+            ->willReturn([
                 'email' => $userProxy->getEmail(),
                 'password' => 'anypassword',
-            ], JSON_THROW_ON_ERROR))
+            ])
         ;
         $requestMock->expects($this->once())
             ->method('getClientIp')
@@ -91,11 +91,11 @@ class UserLoginEventSubscriberTest extends KernelTestCase
 
         $requestMock = $this->createMock(Request::class);
         $requestMock->expects($this->once())
-            ->method('getContent')
-            ->willReturn(json_encode([
+            ->method('toArray')
+            ->willReturn([
                 'email' => $userProxy->getEmail(),
                 'password' => 'anypassword',
-            ], JSON_THROW_ON_ERROR))
+            ])
         ;
         $requestMock->expects($this->once())
             ->method('getClientIp')
@@ -145,11 +145,11 @@ class UserLoginEventSubscriberTest extends KernelTestCase
 
         $requestMock = $this->createMock(Request::class);
         $requestMock->expects($this->once())
-            ->method('getContent')
-            ->willReturn(json_encode([
+            ->method('toArray')
+            ->willReturn([
                 'email' => $userProxy->getEmail(),
                 'password' => 'anypassword',
-            ], JSON_THROW_ON_ERROR))
+            ])
         ;
         $requestMock->expects($this->once())
             ->method('getClientIp')
