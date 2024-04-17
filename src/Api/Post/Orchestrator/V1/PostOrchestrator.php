@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Api\Post\Orchestrator\V1;
 
 use App\Api\Post\DTO\V1\CreatePostDTO;
+use App\Api\Post\DTO\V1\GetPostsDTO;
 use App\Api\Post\DTO\V1\UpdatePostDTO;
 use App\Api\Post\Entity\Enum\PostStatus;
 use App\Api\Post\Entity\Post;
@@ -15,7 +16,9 @@ use App\Api\Post\Voter\PostVoter;
 use App\Api\User\Entity\User;
 use App\Api\User\Service\V1\UserService;
 use App\Api\User\Voter\UserVoter;
+use App\Exception\AccessNotGrantedException;
 use App\Exception\EntityNotFoundException;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 class PostOrchestrator
@@ -43,7 +46,7 @@ class PostOrchestrator
     {
         $post = $this->postService->getByUlid($ulid);
 
-        if ($post === null || ! $this->authorizationChecker->isGranted(PostVoter::VIEW, $post)) {
+        if ($post === null || ! $this->authorizationChecker->isGranted(PostVoter::GET, $post)) {
             throw EntityNotFoundException::new(Post::class, $ulid);
         }
 
@@ -104,5 +107,25 @@ class PostOrchestrator
         }
 
         return $this->postService->update($post, $updatePostDTO);
+    }
+
+    public function getAllPaginated(GetPostsDTO $getPostsDTO): Paginator
+    {
+        if (! $this->authorizationChecker->isGranted(PostVoter::GET_ANY, Post::class)) {
+            throw AccessNotGrantedException::new();
+        }
+
+        return $this->postService->getAllPaginated($getPostsDTO);
+    }
+
+    public function getByUserPaginated(string $userUlid, GetPostsDTO $getPostsDTO): Paginator
+    {
+        $user = $this->userService->getByUlid($userUlid);
+
+        if ($user === null || ! $this->authorizationChecker->isGranted(UserVoter::VIEW, $user)) {
+            throw EntityNotFoundException::new(User::class, $userUlid);
+        }
+
+        return $this->postService->getByUserPaginated($user, $getPostsDTO);
     }
 }

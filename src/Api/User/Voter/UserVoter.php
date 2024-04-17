@@ -11,8 +11,8 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 class UserVoter extends Voter
 {
-    public final const string VIEW = 'view';
-    public final const string UPDATE = 'update';
+    public final const string VIEW = 'user.view';
+    public final const string UPDATE = 'user.update';
 
     public function __construct(private readonly Security $security)
     {

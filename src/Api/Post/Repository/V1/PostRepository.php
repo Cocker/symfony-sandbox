@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace App\Api\Post\Repository\V1;
 
+use App\Api\Post\Entity\Enum\PostStatus;
 use App\Api\Post\Entity\Post;
+use App\Api\User\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query;
+use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Doctrine\Types\UlidType;
 
@@ -32,5 +37,40 @@ class PostRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult()
         ;
+    }
+
+    public function findAllPaginated(int $limit, int $offset, ?PostStatus $postStatus = null): Paginator
+    {
+        $query = $this->getPaginatedQuery($limit, $offset, $postStatus);
+
+        return new Paginator($query);
+    }
+
+    public function findByUserPaginated(User $user, int $limit, int $offset, ?PostStatus $postStatus): Paginator
+    {
+        $query = $this->getPaginatedQuery($limit, $offset, $postStatus);
+
+        $query->andWhere('p.author = :authorId')
+            ->setParameter('authorId', $user->getId())
+        ;
+
+        return new Paginator($query);
+    }
+
+    protected function getPaginatedQuery(int $limit, int $offset, ?PostStatus $postStatus): QueryBuilder
+    {
+        $query = $this->createQueryBuilder('p')
+            ->orderBy('p.createdAt', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+        ;
+
+        if ($postStatus !== null) {
+            $query->andWhere('p.status = :status')
+                ->setParameter('status', $postStatus)
+            ;
+        }
+
+        return $query;
     }
 }

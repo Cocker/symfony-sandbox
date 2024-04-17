@@ -6,15 +6,23 @@ namespace App\Api\Post\Service\V1;
 
 use ApiPlatform\Validator\ValidatorInterface;
 use App\Api\Post\DTO\V1\CreatePostDTO;
+use App\Api\Post\DTO\V1\GetPostsDTO;
 use App\Api\Post\DTO\V1\UpdatePostDTO;
 use App\Api\Post\Entity\Enum\PostStatus;
 use App\Api\Post\Entity\Post;
 use App\Api\User\Entity\User;
+use App\Util\PaginationTrait;
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+use LDAP\Result;
 
 class PostService
 {
+    use PaginationTrait;
+
+    public const int RESULTS_PER_PAGE = 10;
+
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly ValidatorInterface $validator,
@@ -44,7 +52,7 @@ class PostService
         return $this->entityManager->getRepository(Post::class)->findOneByUlid($ulid);
     }
 
-    public function complete(Post $post)
+    public function complete(Post $post): Post
     {
         $post->setStatus(PostStatus::PENDING);
 
@@ -92,5 +100,32 @@ class PostService
         $this->entityManager->flush();
 
         return $post;
+    }
+
+    public function getAllPaginated(GetPostsDTO $getPostsDTO): Paginator
+    {
+        $page = $this->normalizePage($getPostsDTO->page);
+
+        return $this->entityManager->getRepository(Post::class)
+            ->findAllPaginated(
+                self::RESULTS_PER_PAGE,
+                $this->getOffset($page, self::RESULTS_PER_PAGE),
+                $getPostsDTO->postStatus,
+            )
+        ;
+    }
+
+    public function getByUserPaginated(User $user, GetPostsDTO $getPostsDTO): Paginator
+    {
+        $page = $this->normalizePage($getPostsDTO->page);
+
+        return $this->entityManager->getRepository(Post::class)
+            ->findByUserPaginated(
+                $user,
+                self::RESULTS_PER_PAGE,
+                $this->getOffset($page, self::RESULTS_PER_PAGE),
+                $getPostsDTO->postStatus,
+            )
+       ;
     }
 }

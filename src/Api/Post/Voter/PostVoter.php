@@ -13,11 +13,12 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 
 class PostVoter extends Voter
 {
-    public final const string VIEW = 'view';
-    public final const string COMPLETE = 'complete';
-    public final const string UPDATE = 'update';
-    public final const string PUBLISH = 'publish';
-    public final const string REJECT = 'reject';
+    public final const string GET = 'post.get';
+    public final const string GET_ANY = 'post.get_any';
+    public final const string COMPLETE = 'post.complete';
+    public final const string UPDATE = 'post.update';
+    public final const string PUBLISH = 'post.publish';
+    public final const string REJECT = 'post.reject';
 
     public function __construct(protected readonly Security $security)
     {
@@ -27,17 +28,18 @@ class PostVoter extends Voter
     public function supportsAttribute(string $attribute): bool
     {
         return in_array($attribute, [
-            self::VIEW,
+            self::GET,
             self::COMPLETE,
             self::UPDATE,
             self::PUBLISH,
             self::REJECT,
+            self::GET_ANY,
         ], true);
     }
 
     public function supportsType(string $subjectType): bool
     {
-        return $subjectType === Post::class;
+        return $subjectType === Post::class || $subjectType === 'string';
     }
 
 
@@ -47,7 +49,11 @@ class PostVoter extends Voter
             return false;
         }
 
-        if (! is_object($subject) || ! $this->supportsType($subject::class)) {
+        if (\is_object($subject) && ! $this->supportsType($subject::class)) {
+            return false;
+        }
+
+        if (\is_string($subject) && ! $this->supportsType($subject)) {
             return false;
         }
 
@@ -70,8 +76,8 @@ class PostVoter extends Voter
         }
 
         return match ($attribute) {
-            self::VIEW, self::UPDATE, self::COMPLETE => $post->getAuthor() === $user,
-            self::PUBLISH, self::REJECT => false, // only admin can publish/reject
+            self::GET, self::UPDATE, self::COMPLETE => $post->getAuthor() === $user,
+            self::PUBLISH, self::REJECT, self::GET_ANY => false, // only admin
         };
     }
 }
