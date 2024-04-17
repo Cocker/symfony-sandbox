@@ -51,6 +51,9 @@ jobs:
         name: Run migrations
         run: docker compose exec -T php bin/console -e test doctrine:migrations:migrate --no-interaction
       -
+        name: Generate JWT keys
+        run: docker compose exec -T php bin/console lexik:jwt:generate-keypair
+      -
         name: Run PHPUnit
         run: docker compose exec -T php bin/phpunit
       -
