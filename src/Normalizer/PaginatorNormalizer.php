@@ -23,7 +23,7 @@ class PaginatorNormalizer implements NormalizerInterface
         array $context = []
     ): array|string|int|float|bool|\ArrayObject|null {
         if (! $object instanceof Paginator) {
-            return new \LogicException('Not supported type');
+            throw new \LogicException('Not supported type');
         }
 
         $data = [];

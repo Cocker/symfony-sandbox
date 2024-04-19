@@ -10,16 +10,18 @@ use Symfony\Component\HttpFoundation\Request;
 
 readonly class GetPostsDTO extends AbstractDTO
 {
-    public int $page;
-    public ?PostStatus $postStatus;
+    public function __construct(
+        public int $page,
+        public ?PostStatus $postStatus,
+    ) {
+        parent::__construct();
+    }
 
-    public static function fromRequest(Request $request): static
+    public static function fromRequest(Request $request): self
     {
-        $dto = new static;
-
-        $dto->page = (int) $request->query->get('page', 1);
-        $dto->postStatus = PostStatus::tryFrom($request->query->get('status', ''));
-
-        return $dto;
+        return new self(
+            page: (int) $request->query->get('page', 1),
+            postStatus: PostStatus::tryFrom($request->query->get('status', '')),
+        );
     }
 }

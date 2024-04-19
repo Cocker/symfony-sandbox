@@ -9,18 +9,20 @@ use Symfony\Component\HttpFoundation\Request;
 
 readonly class CreatePostDTO extends AbstractDTO
 {
-    public string $title;
-    public string $body;
+    private function __construct(
+        public string $title,
+        public string $body,
+    ) {
+        parent::__construct();
+    }
 
-    public static function fromRequest(Request $request): static
+    public static function fromRequest(Request $request): self
     {
-        $payload = static::requestContentToArray($request);
+        $payload = self::requestContentToArray($request);
 
-        $dto = new static;
-
-        $dto->title = $payload['title'] ?? '';
-        $dto->body = $payload['body'] ?? '';
-
-        return $dto;
+        return new self(
+            title: $payload['title'] ?? '',
+            body: $payload['body'] ?? '',
+        );
     }
 }

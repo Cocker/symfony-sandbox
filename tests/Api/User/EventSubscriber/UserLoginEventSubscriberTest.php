@@ -15,6 +15,7 @@ use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\HeaderBag;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Uid\Ulid;
 
 class UserLoginEventSubscriberTest extends KernelTestCase
@@ -127,6 +128,7 @@ class UserLoginEventSubscriberTest extends KernelTestCase
 
         $this->assertQueuedEmailCount(1);
 
+        /** @var Email $email */
         $email = $this->getMailerMessage();
         $this->assertSame('Suspicious Login', $email->getSubject());
         $this->assertStringContainsString($newClientIp, $email->getTextBody());
@@ -180,6 +182,8 @@ class UserLoginEventSubscriberTest extends KernelTestCase
         $this->assertNotNull($userLogin);
 
         $this->assertQueuedEmailCount(1);
+
+        /** @var Email $email */
         $email = $this->getMailerMessage();
         $this->assertSame('Suspicious Login', $email->getSubject());
         $this->assertStringContainsString($newUserAgent, $email->getTextBody());

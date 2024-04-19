@@ -9,15 +9,15 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class EntityNotFoundException extends HttpException
 {
-    private function __construct(string $message = "", int $code = 0, ?\Throwable $previous = null)
+    protected function __construct(string $message = "", int $code = 0, ?\Throwable $previous = null)
     {
         parent::__construct(Response::HTTP_NOT_FOUND, $message, $previous, [], $code);
     }
 
-    public static function new(string $entityClassName, string $ulid): static
+    public static function new(string $entityClassName, string $ulid): self
     {
         $entityName = class_basename($entityClassName);
 
-        return new static("Entity $entityName with ulid $ulid not found");
+        return new self("Entity $entityName with ulid $ulid not found");
     }
 }

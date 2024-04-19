@@ -9,22 +9,24 @@ use Symfony\Component\HttpFoundation\Request;
 
 readonly class CreateUserDTO extends AbstractDTO
 {
-    public string $firstName;
-    public string $lastName;
-    public string $email;
-    public string $plainPassword;
+    public function __construct(
+        public string $firstName,
+        public string $lastName,
+        public string $email,
+        public string $plainPassword,
+    ) {
+        parent::__construct();
+    }
 
-    public static function fromRequest(Request $request): static
+    public static function fromRequest(Request $request): self
     {
-        $dto = new static();
+        $payload = self::requestContentToArray($request);
 
-        $payload = static::requestContentToArray($request);
-
-        $dto->firstName = $payload['firstName'] ?? '';
-        $dto->lastName = $payload['lastName'] ?? '';
-        $dto->email = $payload['email'] ?? '';
-        $dto->plainPassword = $payload['password'] ?? '';
-
-        return $dto;
+        return new self(
+            firstName: $payload['firstName'] ?? '',
+            lastName: $payload['lastName'] ?? '',
+            email: $payload['email'] ?? '',
+            plainPassword: $payload['password'] ?? '',
+        );
     }
 }

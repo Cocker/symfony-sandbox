@@ -17,13 +17,19 @@ readonly class RequestPasswordResetDTO extends AbstractDTO
     #[Email]
     public string $email;
 
-    public static function fromRequest(Request $request): static
+    public function __construct(string $email)
     {
-        $payload = static::requestContentToArray($request);
+        $this->email = $email;
 
-        $dto = new static();
-        $dto->email = $payload['email'] ?? '';
+        parent::__construct();
+    }
 
-        return $dto;
+    public static function fromRequest(Request $request): self
+    {
+        $payload = self::requestContentToArray($request);
+
+        return new self(
+            email: $payload['email'] ?? '',
+        );
     }
 }

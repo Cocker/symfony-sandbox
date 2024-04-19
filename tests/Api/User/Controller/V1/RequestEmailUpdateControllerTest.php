@@ -13,6 +13,7 @@ use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\Uid\Ulid;
 
 class RequestEmailUpdateControllerTest extends ApiTestCase
@@ -124,6 +125,10 @@ class RequestEmailUpdateControllerTest extends ApiTestCase
             $this->verificationPool->getItem(VerificationType::EMAIL_UPDATE->fullKey($userObject))->get()
         );
 
+        /**
+         * @var Email $verificationEmail,
+         * @var Email $notificationEmail,
+         */
         [$verificationEmail, $notificationEmail] = $this->getMailerMessages();
         $this->assertEquals($newEmail, $verificationEmail->getTo()[0]->getAddress());
         $this->assertEquals('Verify your new email', $verificationEmail->getSubject());

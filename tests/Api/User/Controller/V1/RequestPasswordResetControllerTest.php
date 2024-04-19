@@ -13,6 +13,7 @@ use App\Api\User\Service\V1\VerificationService;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mime\Email;
 
 class RequestPasswordResetControllerTest extends ApiTestCase
 {
@@ -68,6 +69,7 @@ class RequestPasswordResetControllerTest extends ApiTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
         $this->assertQueuedEmailCount(1);
 
+        /** @var Email $email */
         $email = $this->getMailerMessage();
         $this->assertEquals('Reset password', $email->getSubject());
         $this->assertStringContainsString(StaticVerificationCodeGenerator::CODE, $email->getTextBody());

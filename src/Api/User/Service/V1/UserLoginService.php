@@ -17,6 +17,7 @@ class UserLoginService
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
         protected readonly MailerInterface $mailer,
+        protected readonly UserLoginRepository $userLoginRepository,
     ) {
         //
     }
@@ -39,9 +40,7 @@ class UserLoginService
 
     public function sendEmailIfSuspiciousLogin(UserLogin $userLogin): void
     {
-        $userLoginRepository = $this->entityManager->getRepository(UserLogin::class);
-
-        if (! $userLoginRepository->isSuspiciousLogin($userLogin)) {
+        if (! $this->userLoginRepository->isSuspiciousLogin($userLogin)) {
             return;
         }
 

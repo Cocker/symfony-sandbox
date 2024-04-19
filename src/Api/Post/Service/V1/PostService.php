@@ -10,12 +10,12 @@ use App\Api\Post\DTO\V1\GetPostsDTO;
 use App\Api\Post\DTO\V1\UpdatePostDTO;
 use App\Api\Post\Entity\Enum\PostStatus;
 use App\Api\Post\Entity\Post;
+use App\Api\Post\Repository\V1\PostRepository;
 use App\Api\User\Entity\User;
 use App\Util\PaginationTrait;
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Pagination\Paginator;
-use LDAP\Result;
 
 class PostService
 {
@@ -25,6 +25,7 @@ class PostService
 
     public function __construct(
         protected readonly EntityManagerInterface $entityManager,
+        protected readonly PostRepository $postRepository,
         protected readonly ValidatorInterface $validator,
     ) {
     }
@@ -49,7 +50,7 @@ class PostService
 
     public function getByUlid(string $ulid): ?Post
     {
-        return $this->entityManager->getRepository(Post::class)->findOneByUlid($ulid);
+        return $this->postRepository->findOneByUlid($ulid);
     }
 
     public function complete(Post $post): Post
@@ -106,7 +107,7 @@ class PostService
     {
         $page = $this->normalizePage($getPostsDTO->page);
 
-        return $this->entityManager->getRepository(Post::class)
+        return $this->postRepository
             ->findAllPaginated(
                 self::RESULTS_PER_PAGE,
                 $this->getOffset($page, self::RESULTS_PER_PAGE),
@@ -119,7 +120,7 @@ class PostService
     {
         $page = $this->normalizePage($getPostsDTO->page);
 
-        return $this->entityManager->getRepository(Post::class)
+        return $this->postRepository
             ->findByUserPaginated(
                 $user,
                 self::RESULTS_PER_PAGE,

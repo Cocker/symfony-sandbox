@@ -9,13 +9,13 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AccessNotGrantedException extends HttpException
 {
-    private function __construct(string $message = "", int $code = 0, ?\Throwable $previous = null)
+    protected function __construct(string $message = "", int $code = 0, ?\Throwable $previous = null)
     {
         parent::__construct(Response::HTTP_FORBIDDEN, $message, $previous, [], $code);
     }
 
-    public static function new(): static
+    public static function new(): self
     {
-        return new static('Access not granted');
+        return new self('Access not granted');
     }
 }

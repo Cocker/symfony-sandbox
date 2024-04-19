@@ -23,15 +23,23 @@ readonly class VerifyEmailDTO extends AbstractDTO
     #[DigitVerificationCode]
     public string $code;
 
-    public static function fromRequest(Request $request): static
+    public function __construct(
+        string $email,
+        #[\SensitiveParameter] string $code,
+    ) {
+        $this->email = $email;
+        $this->code = $code;
+
+        parent::__construct();
+    }
+
+    public static function fromRequest(Request $request): self
     {
-        $dto = new static();
+        $payload = self::requestContentToArray($request);
 
-        $payload = static::requestContentToArray($request);
-
-        $dto->email = $payload['email'] ?? '';
-        $dto->code = $payload['code'] ?? '';
-
-        return $dto;
+        return new self(
+            email: $payload['email'] ?? '',
+            code: $payload['code'] ?? '',
+        );
     }
 }

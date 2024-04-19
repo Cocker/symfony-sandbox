@@ -17,14 +17,19 @@ readonly class SendEmailVerificationEmailDTO extends AbstractDTO
     #[Email]
     public string $email;
 
-    public static function fromRequest(Request $request): static
+    public function __construct(string $email)
     {
-        $dto = new static;
+        parent::__construct();
 
-        $payload = static::requestContentToArray($request);
+        $this->email = $email;
+    }
 
-        $dto->email = $payload['email'];
+    public static function fromRequest(Request $request): self
+    {
+        $payload = self::requestContentToArray($request);
 
-        return $dto;
+        return new self(
+            email: $payload['email'] ?? '',
+        );
     }
 }

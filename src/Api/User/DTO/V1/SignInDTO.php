@@ -12,17 +12,29 @@ readonly class SignInDTO extends AbstractDTO
     public string $ip;
     public string $userAgent;
 
-    public static function fromRequest(Request $request): static
+    public function __construct(
+        string $email,
+        #[\SensitiveParameter] string $password,
+        string $ip,
+        string $userAgent,
+    ) {
+        $this->email = $email;
+        $this->password = $password;
+        $this->ip = $ip;
+        $this->userAgent = $userAgent;
+
+        parent::__construct();
+    }
+
+    public static function fromRequest(Request $request): self
     {
-        $payload = static::requestContentToArray($request);
+        $payload = self::requestContentToArray($request);
 
-        $dto = new static();
-
-        $dto->email = $payload['email'];
-        $dto->password = $payload['password'];
-        $dto->ip = $request->getClientIp();
-        $dto->userAgent = $request->headers->get('User-Agent', 'Unknown');
-
-        return $dto;
+        return new self(
+            email: $payload['email'],
+            password: $payload['password'],
+            ip: $request->getClientIp(),
+            userAgent: $request->headers->get('User-Agent', 'Unknown'),
+        );
     }
 }

@@ -17,14 +17,19 @@ readonly class RequestEmailUpdateDTO extends AbstractDTO
     #[Email]
     public string $newEmail;
 
-    public static function fromRequest(Request $request): static
+    public function __construct(string $newEmail)
     {
-        $dto = new static();
+        $this->newEmail = $newEmail;
 
-        $payload = static::requestContentToArray($request);
+        parent::__construct();
+    }
 
-        $dto->newEmail = $payload['email'] ?? '';
+    public static function fromRequest(Request $request): self
+    {
+        $payload = self::requestContentToArray($request);
 
-        return $dto;
+        return new self(
+            newEmail: $payload['email'] ?? '',
+        );
     }
 }

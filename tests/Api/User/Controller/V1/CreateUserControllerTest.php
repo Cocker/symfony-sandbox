@@ -16,6 +16,7 @@ use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Uid\Ulid;
 
@@ -83,6 +84,8 @@ class CreateUserControllerTest extends ApiTestCase
         $this->assertTrue($userPasswordHasher->isPasswordValid($createdUser, $password));
 
         $this->assertQueuedEmailCount(1);
+
+        /** @var Email $email */
         $email = $this->getMailerMessage();
 
         $this->assertEquals('Verify your email', $email->getSubject());

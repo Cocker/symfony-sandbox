@@ -8,7 +8,7 @@ abstract readonly class AbstractDTO
 {
     protected function __construct() {}
 
-    abstract public static function fromRequest(Request $request): static;
+    abstract public static function fromRequest(Request $request): self;
 
     protected static function requestContentToArray(Request $request): array
     {

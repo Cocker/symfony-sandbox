@@ -16,15 +16,23 @@ readonly class UpdatePasswordDTO extends AbstractDTO
     public string $password;
     public string $newPassword;
 
-    public static function fromRequest(Request $request): static
+    public function __construct(
+        #[\SensitiveParameter] string $password,
+        #[\SensitiveParameter] string $newPassword,
+    ) {
+        $this->password = $password;
+        $this->newPassword = $newPassword;
+
+        parent::__construct();
+    }
+
+    public static function fromRequest(Request $request): self
     {
-        $payload = static::requestContentToArray($request);
+        $payload = self::requestContentToArray($request);
 
-        $dto = new static;
-
-        $dto->password = $payload['password'] ?? '';
-        $dto->newPassword = $payload['newPassword'] ?? '';
-
-        return $dto;
+        return new self(
+            password: $payload['password'] ?? '',
+            newPassword: $payload['newPassword'] ?? '',
+        );
     }
 }

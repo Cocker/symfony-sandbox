@@ -24,16 +24,26 @@ readonly class ResetPasswordDTO extends AbstractDTO
     #[DigitVerificationCode]
     public string $code;
 
-    public static function fromRequest(Request $request): static
+    public function __construct(
+        string $email,
+        #[\SensitiveParameter] string $password,
+        #[\SensitiveParameter] string $code,
+    ) {
+       $this->email = $email;
+       $this->password = $password;
+       $this->code = $code;
+
+       parent::__construct();
+    }
+
+    public static function fromRequest(Request $request): self
     {
-        $payload = static::requestContentToArray($request);
+        $payload = self::requestContentToArray($request);
 
-        $dto = new static();
-
-        $dto->email = $payload['email'] ?? '';
-        $dto->password = $payload['password'] ?? '';
-        $dto->code = $payload['code'] ?? '';
-
-        return $dto;
+        return new self(
+            email: $payload['email'] ?? '',
+            password: $payload['password'] ?? '',
+            code: $payload['code'] ?? '',
+        );
     }
 }

@@ -7,8 +7,18 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class InvalidCredentialsException extends HttpException
 {
-    public static function new(): static
+    protected function __construct(
+        int $statusCode,
+        string $message = '',
+        ?\Throwable $previous = null,
+        array $headers = [],
+        int $code = 0
+    ) {
+        parent::__construct($statusCode, $message, $previous, $headers, $code);
+    }
+
+    public static function new(): self
     {
-        return new static(Response::HTTP_UNAUTHORIZED, 'Invalid credentials.');
+        return new self(Response::HTTP_UNAUTHORIZED, 'Invalid credentials.');
     }
 }

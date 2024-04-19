@@ -19,8 +19,8 @@ class PostNotDraftException extends HttpException
         parent::__construct($statusCode, $message, $previous, $headers, $code);
     }
 
-    public static function new(): static
+    public static function new(): self
     {
-        return new static(Response::HTTP_BAD_REQUEST, 'Post is not in draft status');
+        return new self(Response::HTTP_BAD_REQUEST, 'Post is not in draft status');
     }
 }

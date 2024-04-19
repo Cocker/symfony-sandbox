@@ -57,6 +57,9 @@ jobs:
         name: Run PHPUnit
         run: docker compose exec -T php bin/phpunit
       -
+        name: Run PHPStan
+        run: docker compose exec -T php vendor/bin/phpstan
+      -
         name: Doctrine Schema Validator
         if: false # https://github.com/doctrine/migrations/issues/1406
         run: docker compose exec -T php bin/console -e test doctrine:schema:validate
