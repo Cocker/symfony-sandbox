@@ -58,7 +58,7 @@ jobs:
         run: docker compose exec -T php bin/phpunit
       -
         name: Run PHPStan
-        run: docker compose exec -T php vendor/bin/phpstan
+        run: docker compose exec -T php vendor/bin/phpstan --memory-limit=256M
       -
         name: Doctrine Schema Validator
         if: false # https://github.com/doctrine/migrations/issues/1406
