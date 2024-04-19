@@ -78,6 +78,7 @@ class PostVoter extends Voter
         return match ($attribute) {
             self::GET, self::UPDATE, self::COMPLETE => $post->getAuthor() === $user,
             self::PUBLISH, self::REJECT, self::GET_ANY => false, // only admin
+            default => throw new \LogicException("Unexpected attribute: $attribute"),
         };
     }
 }

@@ -60,7 +60,7 @@ class UserVoter extends Voter
         return match ($attribute) {
             self::VIEW => $this->canView($user, $authenticatedUser),
             self::UPDATE => $this->canUpdate($user, $authenticatedUser),
-            default => throw new \LogicException('This code should not be reached!')
+            default => throw new \LogicException("Unexpected attribute: $attribute"),
         };
     }
 
