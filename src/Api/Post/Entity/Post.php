@@ -124,6 +124,9 @@ class Post extends AbstractEntity
         return $this;
     }
 
+    /**
+     * @return string[]
+     */
     public function sluggableFields(): array
     {
         return ['title'];

@@ -8,7 +8,6 @@ use App\Api\Post\Entity\Enum\PostStatus;
 use App\Api\Post\Entity\Post;
 use App\Api\User\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
@@ -39,6 +38,12 @@ class PostRepository extends ServiceEntityRepository
         ;
     }
 
+    /**
+     * @param int $limit
+     * @param int $offset
+     * @param PostStatus|null $postStatus
+     * @return Paginator<Post>
+     */
     public function findAllPaginated(int $limit, int $offset, ?PostStatus $postStatus = null): Paginator
     {
         $query = $this->getPaginatedQuery($limit, $offset, $postStatus);
@@ -46,6 +51,13 @@ class PostRepository extends ServiceEntityRepository
         return new Paginator($query);
     }
 
+    /**
+     * @param User $user
+     * @param int $limit
+     * @param int $offset
+     * @param PostStatus|null $postStatus
+     * @return Paginator<Post>
+     */
     public function findByUserPaginated(User $user, int $limit, int $offset, ?PostStatus $postStatus): Paginator
     {
         $query = $this->getPaginatedQuery($limit, $offset, $postStatus);

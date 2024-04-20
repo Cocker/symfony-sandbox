@@ -9,6 +9,9 @@ use App\Api\User\Validator\DigitVerificationCodeValidator;
 use Symfony\Component\Validator\ConstraintValidatorInterface;
 use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 
+/**
+ * @extends ConstraintValidatorTestCase<DigitVerificationCodeValidator>
+ */
 class DigitVerificationCodeValidatorTest extends ConstraintValidatorTestCase
 {
     private const string FAILED_VALIDATION_MESSAGE = 'The verification code should be a numeric value of length 6. You provided: {{ value }}';

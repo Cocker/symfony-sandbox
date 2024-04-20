@@ -17,6 +17,13 @@ class PaginatorNormalizer implements NormalizerInterface
         //
     }
 
+    /**
+     * @param mixed $object
+     * @param string|null $format
+     * @param string[] $context
+     * @return array<string, mixed>|string|int|float|bool|\ArrayObject<string, mixed>|null
+     * @throws \Symfony\Component\Serializer\Exception\ExceptionInterface
+     */
     public function normalize(
         mixed $object,
         ?string $format = null,
@@ -37,6 +44,12 @@ class PaginatorNormalizer implements NormalizerInterface
         return $data;
     }
 
+    /**
+     * @param mixed $data
+     * @param string|null $format
+     * @param string[] $context
+     * @return bool
+     */
     public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool
     {
         return $data instanceof Paginator;

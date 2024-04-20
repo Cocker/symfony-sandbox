@@ -54,6 +54,10 @@ class UserService
         return $user;
     }
 
+    /**
+     * @param array<string, mixed> $criteria
+     * @return User|null
+     */
     public function findOneBy(array $criteria): ?User
     {
         return $this->entityManager->getRepository(User::class)->findOneBy($criteria);

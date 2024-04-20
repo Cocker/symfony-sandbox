@@ -103,6 +103,10 @@ class PostService
         return $post;
     }
 
+    /**
+     * @param GetPostsDTO $getPostsDTO
+     * @return Paginator<Post>
+     */
     public function getAllPaginated(GetPostsDTO $getPostsDTO): Paginator
     {
         $page = $this->normalizePage($getPostsDTO->page);
@@ -116,6 +120,11 @@ class PostService
         ;
     }
 
+    /**
+     * @param User $user
+     * @param GetPostsDTO $getPostsDTO
+     * @return Paginator<Post>
+     */
     public function getByUserPaginated(User $user, GetPostsDTO $getPostsDTO): Paginator
     {
         $page = $this->normalizePage($getPostsDTO->page);

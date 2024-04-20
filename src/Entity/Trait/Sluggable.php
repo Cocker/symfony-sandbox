@@ -26,6 +26,9 @@ trait Sluggable
         return $this;
     }
 
+    /**
+     * @return string[]
+     */
     public function sluggableFields(): array
     {
         return [];

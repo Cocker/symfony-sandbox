@@ -7,6 +7,13 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class InvalidCredentialsException extends HttpException
 {
+    /**
+     * @param int $statusCode
+     * @param string $message
+     * @param \Throwable|null $previous
+     * @param array<string, mixed> $headers
+     * @param int $code
+     */
     protected function __construct(
         int $statusCode,
         string $message = '',

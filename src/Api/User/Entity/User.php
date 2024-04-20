@@ -72,6 +72,9 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
     #[Groups(['v1_personal'])]
     private string $lastName;
 
+    /**
+     * @var string[]
+     */
     #[ORM\Column(type: Types::JSON)]
     #[Groups(['v1_metadata'])]
     private array $roles;
@@ -90,9 +93,15 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
     #[PasswordStrength(minScore: PasswordStrength::STRENGTH_MEDIUM)]
     private ?string $plainPassword = null;
 
+    /**
+     * @var Collection<int, UserLogin> $logins
+     */
     #[ORM\OneToMany(targetEntity: UserLogin::class, mappedBy: 'causer', orphanRemoval: true)]
     private Collection $logins;
 
+    /**
+     * @var Collection<int, Post> $posts
+     */
     #[ORM\OneToMany(targetEntity: Post::class, mappedBy: 'author', orphanRemoval: true)]
     private Collection $posts;
 
@@ -187,6 +196,10 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
         return $this;
     }
 
+    /**
+     * @param string[] $roles
+     * @return $this
+     */
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;

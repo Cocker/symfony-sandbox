@@ -109,6 +109,10 @@ class PostOrchestrator
         return $this->postService->update($post, $updatePostDTO);
     }
 
+    /**
+     * @param GetPostsDTO $getPostsDTO
+     * @return Paginator<Post>
+     */
     public function getAllPaginated(GetPostsDTO $getPostsDTO): Paginator
     {
         if (! $this->authorizationChecker->isGranted(PostVoter::GET_ANY, Post::class)) {
@@ -118,6 +122,11 @@ class PostOrchestrator
         return $this->postService->getAllPaginated($getPostsDTO);
     }
 
+    /**
+     * @param string $userUlid
+     * @param GetPostsDTO $getPostsDTO
+     * @return Paginator<Post>
+     */
     public function getByUserPaginated(string $userUlid, GetPostsDTO $getPostsDTO): Paginator
     {
         $user = $this->userService->getByUlid($userUlid);

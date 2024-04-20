@@ -10,6 +10,10 @@ abstract readonly class AbstractDTO
 
     abstract public static function fromRequest(Request $request): self;
 
+    /**
+     * @param Request $request
+     * @return array<string, mixed>
+     */
     protected static function requestContentToArray(Request $request): array
     {
         try {
