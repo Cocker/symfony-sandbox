@@ -55,7 +55,7 @@ jobs:
         run: docker compose exec -T php bin/console lexik:jwt:generate-keypair
       -
         name: Run PHPUnit
-        run: docker compose exec -T php -d memory_limit=256M bin/phpunit
+        run: docker compose exec -T php bin/phpunit -d memory_limit=256M
       -
         name: Run PHPStan
         run: docker compose exec -T php vendor/bin/phpstan --memory-limit=256M
