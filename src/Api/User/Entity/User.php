@@ -6,6 +6,7 @@ namespace App\Api\User\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Api\Post\Entity\Post;
+use App\Api\Post\Entity\PostComment;
 use App\Api\User\Entity\Enum\UserRole;
 use App\Api\User\Entity\Enum\UserStatus;
 use App\Api\User\Repository\V1\UserRepository;
@@ -105,12 +106,19 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
     #[ORM\OneToMany(targetEntity: Post::class, mappedBy: 'author', orphanRemoval: true)]
     private Collection $posts;
 
+    /**
+     * @var Collection<int, PostComment> $postComments
+     */
+    #[ORM\OneToMany(targetEntity: PostComment::class, mappedBy: 'author', orphanRemoval: true)]
+    private Collection $postComments;
+
     public function __construct()
     {
         $this->status = UserStatus::UNVERIFIED;
         $this->roles = [UserRole::USER->value];
         $this->logins = new ArrayCollection();
         $this->posts = new ArrayCollection();
+        $this->postComments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -299,6 +307,36 @@ class User extends AbstractEntity implements UserInterface, PasswordAuthenticate
             // set the owning side to null (unless already changed)
             if ($post->getAuthor() === $this) {
                 $post->setAuthor(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PostComment>
+     */
+    public function getPostComments(): Collection
+    {
+        return $this->postComments;
+    }
+
+    public function addPostComment(PostComment $postComment): static
+    {
+        if (!$this->postComments->contains($postComment)) {
+            $this->postComments->add($postComment);
+            $postComment->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removePostComment(PostComment $postComment): static
+    {
+        if ($this->postComments->removeElement($postComment)) {
+            // set the owning side to null (unless already changed)
+            if ($postComment->getAuthor() === $this) {
+                $postComment->setAuthor(null);
             }
         }
 

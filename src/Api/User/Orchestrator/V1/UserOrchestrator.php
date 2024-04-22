@@ -41,7 +41,7 @@ class UserOrchestrator
     {
         $user = $this->userService->getByUlid($ulid);
 
-        if (null === $user || ! $this->authorizationChecker->isGranted(UserVoter::VIEW, $user)) {
+        if (null === $user || ! $this->authorizationChecker->isGranted(UserVoter::GET, $user)) {
             throw EntityNotFoundException::new(User::class, $ulid);
         }
 

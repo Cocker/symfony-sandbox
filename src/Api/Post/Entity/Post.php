@@ -12,6 +12,8 @@ use App\Entity\Trait\HasUlid;
 use App\Entity\Trait\Sluggable;
 use App\Entity\Trait\Timestampable;
 use Carbon\CarbonImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -54,6 +56,17 @@ class Post extends AbstractEntity
     #[ORM\Column(name: 'published_at', nullable: true)]
     #[Groups(['v1_metadata'])]
     private ?\DateTimeImmutable $publishedAt = null;
+
+    /**
+     * @var Collection<int, PostComment> $comments
+     */
+    #[ORM\OneToMany(targetEntity: PostComment::class, mappedBy: 'post', orphanRemoval: true)]
+    private Collection $comments;
+
+    public function __construct()
+    {
+        $this->comments = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -130,5 +143,35 @@ class Post extends AbstractEntity
     public function sluggableFields(): array
     {
         return ['title'];
+    }
+
+    /**
+     * @return Collection<int, PostComment>
+     */
+    public function getComments(): Collection
+    {
+        return $this->comments;
+    }
+
+    public function addComment(PostComment $comment): static
+    {
+        if (!$this->comments->contains($comment)) {
+            $this->comments->add($comment);
+            $comment->setPost($this);
+        }
+
+        return $this;
+    }
+
+    public function removeComment(PostComment $comment): static
+    {
+        if ($this->comments->removeElement($comment)) {
+            // set the owning side to null (unless already changed)
+            if ($comment->getPost() === $this) {
+                $comment->setPost(null);
+            }
+        }
+
+        return $this;
     }
 }

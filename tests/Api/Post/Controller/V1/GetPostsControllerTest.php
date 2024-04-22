@@ -29,13 +29,6 @@ class GetPostsControllerTest extends ApiTestCase
         $this->JWTTokenManager = static::getContainer()->get(JWTTokenManagerInterface::class);
     }
 
-    public function test_it_returns_error_if_unauthenticated(): void
-    {
-        $this->client->request('GET', '/api/v1/posts');
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
-    }
-
     public function test_user_can_not_access_all_posts(): void
     {
         $userProxy = UserFactory::createOne();

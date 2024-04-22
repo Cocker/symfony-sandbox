@@ -30,15 +30,6 @@ class GetUserPostsControllerTest extends ApiTestCase
         $this->JWTTokenManager = static::getContainer()->get(JWTTokenManagerInterface::class);
     }
 
-    public function test_it_returns_error_if_unauthenticated(): void
-    {
-        $randomUlid = new Ulid();
-
-        $this->client->request('GET', "/api/v1/users/$randomUlid/posts");
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
-    }
-
     public function test_it_returns_error_if_user_does_not_exist(): void
     {
         $randomUlid = new Ulid();

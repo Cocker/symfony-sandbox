@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Api\Post\Controller\V1;
 
 use App\Api\Post\DTO\V1\GetPostsDTO;
-use App\Api\Post\Orchestrator\V1\PostOrchestrator;
+use App\Api\Post\Orchestrator\V1\PostCommentOrchestrator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,27 +14,31 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Requirement\Requirement;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
-class GetUserPostsController extends AbstractController
+class GetPostCommentsByPostController extends AbstractController
 {
     #[Route(
-        path: '/users/{userUlid}/posts',
-        name: 'post.get-by-user',
-        requirements: ['userUlid' => Requirement::ULID],
+        path: '/posts/{postUlid}/comments',
+        name: 'post.comments.get-by-post',
+        requirements: ['postUlid' => Requirement::ULID],
         methods: ['GET'],
     )]
     public function __invoke(
-        string $userUlid,
+        string $postUlid,
         Request $request,
-        PostOrchestrator $postOrchestrator,
+        PostCommentOrchestrator $postCommentOrchestrator,
         NormalizerInterface $normalizer,
     ): JsonResponse {
-        $postsPaginator = $postOrchestrator->getByUserPaginated(
-            $userUlid,
+        $postCommentsPaginator = $postCommentOrchestrator->getByPostPaginated(
+            $postUlid,
             GetPostsDTO::fromRequest($request),
         );
 
         return $this->json(
-            $normalizer->normalize($postsPaginator, 'json', ['groups' => ['v1_post', 'v1_metadata', 'timestamps']]),
+            $normalizer->normalize(
+                $postCommentsPaginator,
+                'json',
+                ['groups' => ['v1_comment', 'v1_metadata', 'timestamps']]
+            ),
             Response::HTTP_OK,
         );
     }

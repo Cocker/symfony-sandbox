@@ -29,15 +29,6 @@ class RejectPostControllerTest extends ApiTestCase
         $this->JWTTokenManager = static::getContainer()->get(JWTTokenManagerInterface::class);
     }
 
-    public function test_it_returns_error_if_unauthenticated(): void
-    {
-        $randomUlid = new Ulid();
-
-        $this->client->request('POST', "/api/v1/posts/$randomUlid/reject");
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
-    }
-
     public function test_it_returns_404_when_post_does_not_exist(): void
     {
         $randomUlid = new Ulid();

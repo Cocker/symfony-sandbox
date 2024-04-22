@@ -6,16 +6,15 @@ namespace App\Tests\Api\Post\Controller\V1;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
-use App\Api\Post\Entity\Enum\PostStatus;
-use App\Api\Post\Entity\Factory\PostFactory;
+use App\Api\Post\Entity\Enum\PostCommentStatus;
+use App\Api\Post\Entity\Factory\PostCommentFactory;
 use App\Api\User\Entity\Factory\UserFactory;
-use Carbon\CarbonImmutable;
 use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Uid\Ulid;
 
-class PublishPostControllerTest extends ApiTestCase
+class RejectPostCommentControllerTest extends ApiTestCase
 {
     use ReloadDatabaseTrait;
 
@@ -30,7 +29,7 @@ class PublishPostControllerTest extends ApiTestCase
         $this->JWTTokenManager = static::getContainer()->get(JWTTokenManagerInterface::class);
     }
 
-    public function test_it_returns_404_when_post_does_not_exist(): void
+    public function test_it_returns_404_when_post_comment_does_not_exist(): void
     {
         $randomUlid = new Ulid();
         $userProxy = UserFactory::createOne();
@@ -38,90 +37,95 @@ class PublishPostControllerTest extends ApiTestCase
 
         $this->client->request(
             'POST',
-            "/api/v1/posts/{$randomUlid}/publish",
-            ['headers' => ['Authorization' => "Bearer $token"]],
+            "/api/v1/post-comments/$randomUlid/reject",
+            ['headers' => ['Authorization' => "Bearer $token"]]
         );
 
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
     }
 
-    public function test_user_can_not_publish_own_post(): void
+    public function test_user_can_not_reject_own_post_comment(): void
     {
         $userProxy = UserFactory::createOne();
-        $randomUlid = new Ulid();
-        $token = $this->JWTTokenManager->create($userProxy->object());
-
-        $this->client->request(
-            'POST',
-            "/api/v1/posts/$randomUlid/publish",
-            ['headers' => ['Authorization' => "Bearer $token"]],
-        );
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
-    }
-
-    public function providePostStatuses(): \Generator
-    {
-        yield [PostStatus::DRAFT];
-        yield [PostStatus::REJECTED];
-        yield [PostStatus::PUBLISHED];
-    }
-
-    /**
-     * @dataProvider providePostStatuses
-     */
-    public function test_admin_can_not_publish_post_if_not_pending(PostStatus $postStatus): void
-    {
-        $userProxy = UserFactory::createOne();
-        $adminUserProxy = UserFactory::new()->admin()->create();
-        $postProxy = PostFactory::new()
-            ->withStatus($postStatus)
+        $postCommentProxy = PostCommentFactory::new()
+            ->withStatus(PostCommentStatus::PENDING)
             ->withAuthor($userProxy->object())
             ->create()
         ;
-
-        $token = $this->JWTTokenManager->create($adminUserProxy->object());
+        $token = $this->JWTTokenManager->create($userProxy->object());
 
         $this->client->request(
             'POST',
-            "/api/v1/posts/{$postProxy->getUlid()}/publish",
+            "/api/v1/post-comments/{$postCommentProxy->getUlid()}/reject",
+            ['headers' => ['Authorization' => "Bearer $token"]],
+        );
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+
+        $postCommentProxy->refresh();
+
+        $this->assertSame(PostCommentStatus::PENDING, $postCommentProxy->getStatus());
+    }
+
+    public function providePostCommentStatuses(): \Generator
+    {
+        yield [PostCommentStatus::REJECTED];
+        yield [PostCommentStatus::APPROVED];
+    }
+
+    /**
+     * @dataProvider providePostCommentStatuses
+     */
+    public function test_admin_can_not_reject_if_not_pending(PostCommentStatus $postCommentStatus): void
+    {
+        $adminUserProxy = UserFactory::new()
+            ->admin()
+            ->create()
+        ;
+        $token = $this->JWTTokenManager->create($adminUserProxy->object());
+
+        $postCommentProxy = PostCommentFactory::new()
+            ->withStatus($postCommentStatus)
+            ->create()
+        ;
+
+        $this->client->request(
+            'POST',
+            "/api/v1/post-comments/{$postCommentProxy->getUlid()}/reject",
             ['headers' => ['Authorization' => "Bearer $token"]]
         );
 
         $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
 
-        $postProxy->refresh();
+        $postCommentProxy->refresh();
 
-        $this->assertSame($postStatus, $postProxy->getStatus());
+        $this->assertSame($postCommentStatus, $postCommentProxy->getStatus());
     }
 
-    public function test_admin_can_publish_post(): void
+    public function test_admin_can_reject_post_comment(): void
     {
-        CarbonImmutable::setTestNow($now = CarbonImmutable::now()->milliseconds(0));
+        $adminUserProxy = UserFactory::new()
+            ->admin()
+            ->create()
+        ;
+        $token = $this->JWTTokenManager->create($adminUserProxy->object());
 
-        $userProxy = UserFactory::createOne();
-        $postProxy = PostFactory::new()
-            ->withStatus(PostStatus::PENDING)
-            ->withAuthor($userProxy->object())
+        $postCommentProxy = PostCommentFactory::new()
+            ->withStatus(PostCommentStatus::PENDING)
             ->create()
         ;
 
-        $adminUserProxy = UserFactory::new()->admin()->create();
-
-        $token = $this->JWTTokenManager->create($adminUserProxy->object());
-
         $this->client->request(
             'POST',
-            "/api/v1/posts/{$postProxy->getUlid()}/publish",
+            "/api/v1/post-comments/{$postCommentProxy->getUlid()}/reject",
             ['headers' => ['Authorization' => "Bearer $token"]]
         );
 
         $this->assertResponseStatusCodeSame(Response::HTTP_OK);
 
-        $postProxy->refresh();
+        $postCommentProxy->refresh();
 
-        $this->assertSame(PostStatus::PUBLISHED, $postProxy->getStatus());
-        $this->assertTrue($now->eq($postProxy->getPublishedAt()));
+        $this->assertSame(PostCommentStatus::REJECTED, $postCommentProxy->getStatus());
     }
 
     protected function tearDown(): void
@@ -131,4 +135,3 @@ class PublishPostControllerTest extends ApiTestCase
         unset($this->client, $this->JWTTokenManager);
     }
 }
-

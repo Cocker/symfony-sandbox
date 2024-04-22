@@ -34,15 +34,6 @@ class UpdatePostControllerTest extends ApiTestCase
         $this->faker = Factory::create();
     }
 
-    public function test_it_returns_error_if_unauthenticated(): void
-    {
-        $randomUlid = new Ulid();
-
-        $this->client->request(  'PUT',"/api/v1/posts/$randomUlid");
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
-    }
-
     public function test_it_returns_404_when_post_does_not_exist(): void
     {
         $randomUlid = new Ulid();

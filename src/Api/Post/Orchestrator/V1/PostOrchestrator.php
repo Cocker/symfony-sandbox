@@ -131,7 +131,7 @@ class PostOrchestrator
     {
         $user = $this->userService->getByUlid($userUlid);
 
-        if ($user === null || ! $this->authorizationChecker->isGranted(UserVoter::VIEW, $user)) {
+        if ($user === null || ! $this->authorizationChecker->isGranted(UserVoter::GET, $user)) {
             throw EntityNotFoundException::new(User::class, $userUlid);
         }
 

@@ -14,7 +14,7 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
  */
 class UserVoter extends Voter
 {
-    public final const string VIEW = 'user.view';
+    public final const string GET = 'user.get';
     public final const string UPDATE = 'user.update';
 
     public function __construct(private readonly Security $security)
@@ -24,7 +24,7 @@ class UserVoter extends Voter
 
     public function supportsAttribute(string $attribute): bool
     {
-        return in_array($attribute, [self::VIEW, self::UPDATE], true);
+        return in_array($attribute, [self::GET, self::UPDATE], true);
     }
 
     public function supportsType(string $subjectType): bool
@@ -61,7 +61,7 @@ class UserVoter extends Voter
         }
 
         return match ($attribute) {
-            self::VIEW => $this->canView($user, $authenticatedUser),
+            self::GET => $this->canView($user, $authenticatedUser),
             self::UPDATE => $this->canUpdate($user, $authenticatedUser),
             default => throw new \LogicException("Unexpected attribute: $attribute"),
         };

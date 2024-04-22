@@ -17,7 +17,7 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 class PostVoter extends Voter
 {
     public final const string GET = 'post.get';
-    public final const string GET_ANY = 'post.get_any';
+    public final const string GET_ANY = 'post.get-any';
     public final const string COMPLETE = 'post.complete';
     public final const string UPDATE = 'post.update';
     public final const string PUBLISH = 'post.publish';

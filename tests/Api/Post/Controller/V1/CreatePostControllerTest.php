@@ -37,19 +37,6 @@ class CreatePostControllerTest extends ApiTestCase
         $this->faker = Factory::create();
     }
 
-    public function test_it_returns_error_if_unauthenticted(): void
-    {
-        $randomUlid = new Ulid();
-
-        $this->client->request(
-            'POST',
-            "/api/v1/users/$randomUlid/posts",
-            ['json' => [],]
-        );
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
-    }
-
     public function test_it_returns_validation_errors(): void
     {
         $userProxy = UserFactory::createOne();

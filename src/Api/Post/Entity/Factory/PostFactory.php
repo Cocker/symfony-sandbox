@@ -29,7 +29,10 @@ final class PostFactory extends ModelFactory
     public function withStatus(PostStatus $status): PostFactory
     {
         if ($status === PostStatus::PUBLISHED) {
-            return $this->published();
+            return $this->addState([
+                'status' => $status,
+                'publishedAt' => self::faker()->dateTime()
+            ]);
         }
 
         return $this->addState(['status' => $status]);
@@ -38,14 +41,6 @@ final class PostFactory extends ModelFactory
     public function withRandomStatus(): PostFactory
     {
         return $this->withStatus(self::faker()->randomElement(PostStatus::cases()));
-    }
-
-    public function published(): PostFactory
-    {
-        return $this->addState([
-            'publishedAt' => self::faker()->dateTime(),
-            'status' => PostStatus::PUBLISHED,
-        ]);
     }
 
     protected function getDefaults(): array
