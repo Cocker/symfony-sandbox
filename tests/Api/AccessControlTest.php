@@ -6,14 +6,11 @@ namespace App\Tests\Api;
 
 use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
 use ApiPlatform\Symfony\Bundle\Test\Client;
-use Hautelook\AliceBundle\PhpUnit\ReloadDatabaseTrait;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Uid\Ulid;
 
 class AccessControlTest extends ApiTestCase
 {
-    use ReloadDatabaseTrait;
-
     private Client $client;
 
     protected function setUp(): void
